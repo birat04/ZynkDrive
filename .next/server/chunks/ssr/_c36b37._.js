@@ -54,7 +54,7 @@ const SignUp = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$
         type: "sign-up"
     }, void 0, false, {
         fileName: "[project]/app/(auth)/sign-up/page.tsx",
-        lineNumber: 4,
+        lineNumber: 3,
         columnNumber: 22
     }, this);
 const __TURBOPACK__default__export__ = SignUp;

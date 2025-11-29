@@ -47,8 +47,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
         {children}
       </section>
-      <main className="flex-[1.2] flex items-center justify-center">
-      </main>
     </div>
   )
 }
