@@ -43,7 +43,7 @@ const AuthForm = ({type}: {type: FormType}) => {
       setIsLoading(true)
       setErrorMessage("")
       // TODO: Implement authentication logic
-      console.log(values)
+    console.log(values)
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "An error occurred")
     } finally {
@@ -63,12 +63,12 @@ const AuthForm = ({type}: {type: FormType}) => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <div className="shad-form-item">
+                <div className="shad-form-item">
                 <FormLabel className="shad-form-label">Username</FormLabel>
-                <FormControl>
+              <FormControl>
                   <Input placeholder="Enter your username" className="shad-input" {...field} />
-                </FormControl>
-              </div>
+              </FormControl>
+                </div>
               <FormMessage className="shad-form-message"/>
             </FormItem>
           )}
@@ -92,15 +92,15 @@ const AuthForm = ({type}: {type: FormType}) => {
         )}
         {type === "sign-up" && (
           <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
                 <div className="shad-form-item">
-                  <FormLabel className="shad-form-label">Email</FormLabel>
-                  <FormControl>
+                <FormLabel className="shad-form-label">Email</FormLabel>
+              <FormControl>
                     <Input type="email" placeholder="Enter your email" className="shad-input" {...field} />
-                  </FormControl>
+              </FormControl>
                 </div>
                 <FormMessage className="shad-form-message"/>
               </FormItem>

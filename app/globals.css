@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -116,16 +115,386 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+
+@keyframes matrix-fall {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
   }
-  body {
-    @apply bg-background text-foreground;
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
   }
 }
 
-/* Added custom animations for the building page */
+
+@keyframes holo-shimmer {
+  0% {
+    background-position: -200% 0;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    background-position: 200% 0;
+    filter: hue-rotate(0deg);
+  }
+}
+
+/* Cyber pulse ring */
+@keyframes cyber-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+    box-shadow: 0 0 0 0 var(--primary);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+    box-shadow: 0 0 30px 10px transparent;
+  }
+}
+
+/* Data stream flow */
+@keyframes data-stream {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+
+/* Hexagon rotation */
+@keyframes hex-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(90deg) scale(1.05);
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+  75% {
+    transform: rotate(270deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Neon flicker */
+@keyframes neon-flicker {
+  0%,
+  19%,
+  21%,
+  23%,
+  25%,
+  54%,
+  56%,
+  100% {
+    text-shadow: 0 0 4px var(--primary), 0 0 11px var(--primary), 0 0 19px var(--primary), 0 0 40px var(--primary), 0 0
+      80px var(--primary);
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    text-shadow: none;
+    opacity: 0.8;
+  }
+}
+
+/* Morphing gradient blob */
+@keyframes morph-gradient {
+  0%,
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    background-position: 0% 50%;
+  }
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    background-position: 50% 0%;
+  }
+  50% {
+    border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%;
+    background-position: 100% 50%;
+  }
+  75% {
+    border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%;
+    background-position: 50% 100%;
+  }
+}
+
+/* Particle trail */
+@keyframes particle-trail {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-50px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Glitch text effect */
+@keyframes glitch-text {
+  0% {
+    clip-path: inset(40% 0 61% 0);
+    transform: translate(-2px, 2px);
+  }
+  20% {
+    clip-path: inset(92% 0 1% 0);
+    transform: translate(1px, -1px);
+  }
+  40% {
+    clip-path: inset(43% 0 1% 0);
+    transform: translate(-1px, 1px);
+  }
+  60% {
+    clip-path: inset(25% 0 58% 0);
+    transform: translate(2px, -2px);
+  }
+  80% {
+    clip-path: inset(54% 0 7% 0);
+    transform: translate(-2px, 1px);
+  }
+  100% {
+    clip-path: inset(58% 0 43% 0);
+    transform: translate(1px, 2px);
+  }
+}
+
+/* Scan line */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* Electric arc */
+@keyframes electric-arc {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Orbit with trail */
+@keyframes orbit-trail {
+  0% {
+    transform: rotate(0deg) translateX(var(--orbit-radius, 100px)) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translateX(var(--orbit-radius, 100px)) rotate(-360deg);
+    opacity: 1;
+  }
+}
+
+/* Wave distortion */
+@keyframes wave-distort {
+  0%,
+  100% {
+    transform: translateX(0) skewX(0deg);
+  }
+  25% {
+    transform: translateX(5px) skewX(2deg);
+  }
+  75% {
+    transform: translateX(-5px) skewX(-2deg);
+  }
+}
+
+/* Floating with rotation */
+@keyframes float-rotate {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+}
+
+/* Grid reveal */
+@keyframes grid-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Type cursor blink */
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Progress glow pulse */
+@keyframes progress-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary), 0 0 20px var(--primary);
+  }
+  50% {
+    box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--primary);
+  }
+}
+
+/* Magnetic hover */
+@keyframes magnetic-pulse {
+  0%,
+  100% {
+    transform: translate(var(--tx, 0), var(--ty, 0));
+  }
+}
+
+/* Animation utility classes */
+
+.animate-matrix-fall {
+  animation: matrix-fall 4s linear infinite;
+}
+
+.animate-holo {
+  animation: holo-shimmer 3s ease infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.3),
+    rgba(45, 212, 191, 0.3),
+    rgba(99, 102, 241, 0.3),
+    transparent
+  );
+  background-size: 200% 100%;
+}
+
+.animate-cyber-pulse {
+  animation: cyber-pulse 2s ease-out infinite;
+}
+
+.animate-data-stream {
+  animation: data-stream 3s ease-in-out infinite;
+}
+
+.animate-hex-spin {
+  animation: hex-spin 10s ease-in-out infinite;
+}
+
+.animate-neon-flicker {
+  animation: neon-flicker 3s infinite;
+}
+
+.animate-morph-gradient {
+  animation: morph-gradient 8s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+.animate-glitch-text {
+  animation: glitch-text 0.3s infinite;
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+.animate-electric {
+  animation: electric-arc 0.5s ease-in-out infinite;
+}
+
+.animate-orbit-trail {
+  animation: orbit-trail 15s linear infinite;
+}
+
+.animate-wave {
+  animation: wave-distort 2s ease-in-out infinite;
+}
+
+.animate-float-rotate {
+  animation: float-rotate 6s ease-in-out infinite;
+}
+
+.animate-grid-reveal {
+  animation: grid-reveal 0.5s ease-out forwards;
+}
+
+.animate-ripple {
+  animation: ripple 1s ease-out forwards;
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+.animate-progress-glow {
+  animation: progress-glow 2s ease-in-out infinite;
+}
+
+/* Previous animations kept */
 @keyframes pulse-glow {
   0%,
   100% {
@@ -155,21 +524,6 @@
   }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-progress {
-  animation: progress-bar 2s ease-out forwards;
-}
-
-/* Added advanced futuristic animations */
-
-/* Particle floating animation with varied delays */
 @keyframes particle-float {
   0%,
   100% {
@@ -190,7 +544,6 @@
   }
 }
 
-/* Morphing blob animation */
 @keyframes morph {
   0%,
   100% {
@@ -207,7 +560,6 @@
   }
 }
 
-/* Aurora/northern lights effect */
 @keyframes aurora {
   0% {
     background-position: 0% 50%;
@@ -223,32 +575,6 @@
   }
 }
 
-/* Text glitch effect */
-@keyframes glitch {
-  0%,
-  100% {
-    text-shadow: 2px 0 var(--primary), -2px 0 var(--accent);
-    transform: translate(0);
-  }
-  20% {
-    text-shadow: -2px 0 var(--primary), 2px 0 var(--accent);
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    text-shadow: 2px 0 var(--accent), -2px 0 var(--primary);
-    transform: translate(2px, -2px);
-  }
-  60% {
-    text-shadow: -2px 0 var(--accent), 2px 0 var(--primary);
-    transform: translate(-2px, 0);
-  }
-  80% {
-    text-shadow: 2px 0 var(--primary), -2px 0 var(--accent);
-    transform: translate(2px, 0);
-  }
-}
-
-/* Scanning line effect */
 @keyframes scan {
   0% {
     transform: translateY(-100%);
@@ -258,18 +584,6 @@
   }
 }
 
-/* Grid line pulse */
-@keyframes grid-pulse {
-  0%,
-  100% {
-    opacity: 0.03;
-  }
-  50% {
-    opacity: 0.08;
-  }
-}
-
-/* Rotating gradient border */
 @keyframes rotate-border {
   0% {
     transform: rotate(0deg);
@@ -279,7 +593,6 @@
   }
 }
 
-/* Scale pulse for icons */
 @keyframes scale-pulse {
   0%,
   100% {
@@ -290,7 +603,6 @@
   }
 }
 
-/* Orbit animation */
 @keyframes orbit {
   0% {
     transform: rotate(0deg) translateX(100px) rotate(0deg);
@@ -300,7 +612,6 @@
   }
 }
 
-/* Shimmer effect */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -310,28 +621,6 @@
   }
 }
 
-/* Type effect for text */
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-/* Blink cursor */
-@keyframes blink {
-  0%,
-  100% {
-    border-color: transparent;
-  }
-  50% {
-    border-color: var(--primary);
-  }
-}
-
-/* Stagger fade in */
 @keyframes stagger-fade {
   from {
     opacity: 0;
@@ -343,71 +632,43 @@
   }
 }
 
-/* Hexagon rotate */
-@keyframes hex-rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(60deg);
-  }
+/* Animation utility classes */
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
-
-/* Utility classes for animations */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+.animate-progress {
+  animation: progress-bar 2s ease-out forwards;
+}
 .animate-particle {
   animation: particle-float 8s ease-in-out infinite;
 }
-
 .animate-morph {
   animation: morph 8s ease-in-out infinite;
 }
-
 .animate-aurora {
   animation: aurora 15s ease infinite;
   background-size: 400% 400%;
 }
-
-.animate-glitch {
-  animation: glitch 0.5s ease infinite;
-}
-
-.animate-glitch-hover:hover {
-  animation: glitch 0.3s ease infinite;
-}
-
 .animate-scan {
   animation: scan 8s linear infinite;
 }
-
-.animate-grid-pulse {
-  animation: grid-pulse 4s ease-in-out infinite;
-}
-
 .animate-rotate-border {
   animation: rotate-border 4s linear infinite;
 }
-
 .animate-scale-pulse {
   animation: scale-pulse 2s ease-in-out infinite;
 }
-
 .animate-orbit {
   animation: orbit 20s linear infinite;
 }
-
 .animate-shimmer {
   animation: shimmer 2s linear infinite;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   background-size: 200% 100%;
 }
-
-.animate-typing {
-  animation: typing 3s steps(30) 1s forwards, blink 0.75s step-end infinite;
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 2px solid;
-}
-
 .animate-stagger {
   animation: stagger-fade 0.6s ease forwards;
 }
@@ -432,21 +693,18 @@
   animation-delay: 0.6s;
 }
 
-/* Perspective container for 3D effects */
+/* 3D utilities */
 .perspective-1000 {
   perspective: 1000px;
 }
-
-/* 3D card flip */
 .preserve-3d {
   transform-style: preserve-3d;
 }
-
 .backface-hidden {
   backface-visibility: hidden;
 }
 
-/* Glassmorphism enhancement */
+/* Glassmorphism */
 .glass {
   background: rgba(22, 22, 35, 0.6);
   backdrop-filter: blur(20px);
@@ -466,7 +724,7 @@
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
 }
 
-/* Gradient text animation */
+/* Gradient text animated */
 .gradient-text-animated {
   background: linear-gradient(
     90deg,
@@ -483,6 +741,40 @@
   animation: shimmer 3s linear infinite;
 }
 
+/* Holographic card effect */
+.holographic-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(45, 212, 191, 0.05) 50%,
+    rgba(99, 102, 241, 0.1) 100%
+  );
+  overflow: hidden;
+}
+
+.holographic-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.holographic-card:hover::before {
+  left: 100%;
+}
+
+/* Cyberpunk grid lines */
+.cyber-grid {
+  background-image: linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
 /* Circuit board pattern */
 .circuit-pattern {
   background-image: linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
@@ -491,4 +783,32 @@
     linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
   background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
   background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+}
+
+/* Advanced glow button */
+.glow-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.glow-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Magnetic hover effect container */
+.magnetic-wrapper {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

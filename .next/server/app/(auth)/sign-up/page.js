@@ -1,12 +1,17 @@
-const CHUNK_PUBLIC_PATH = "server/app/(auth)/sign-up/page.js";
-const runtime = require("../../../chunks/ssr/[turbopack]_runtime.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_fd79bc._.js");
-runtime.loadChunk("server/chunks/ssr/[root of the server]__ea5163._.js");
-runtime.loadChunk("server/chunks/ssr/app_db13a2._.js");
-runtime.loadChunk("server/chunks/ssr/[root of the server]__896de6._.css");
-runtime.loadChunk("server/chunks/ssr/[root of the server]__c680c2._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_16929d._.js");
-runtime.loadChunk("server/chunks/ssr/_61825e._.js");
-runtime.loadChunk("server/chunks/ssr/_c36b37._.js");
-runtime.getOrInstantiateRuntimeModule("[project]/.next-internal/server/app/(auth)/sign-up/page/actions.js [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH);
-module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/(auth)/sign-up/page { METADATA_0 => \"[project]/app/favicon.ico.mjs { IMAGE => \\\"[project]/app/favicon.ico [app-rsc] (static)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_1 => \"[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_2 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_3 => \"[project]/app/(auth)/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_4 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_5 => \"[project]/app/(auth)/sign-up/page.tsx [app-rsc] (ecmascript, Next.js server component)\" } [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH).exports;
+var R=require("../../../chunks/ssr/[turbopack]_runtime.js")("server/app/(auth)/sign-up/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__d7f1cac8._.js")
+R.c("server/chunks/ssr/_d25179f9._.js")
+R.c("server/chunks/ssr/_5d26277d._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__903de2cb._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__d8001078._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_982e7503._.js")
+R.c("server/chunks/ssr/app_b9b1292a._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_ece394eb.js")
+R.c("server/chunks/ssr/app_d7c7bcca._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_9774470f._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_forbidden_45780354.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_15817684.js")
+R.c("server/chunks/ssr/_24c498c2._.js")
+R.c("server/chunks/ssr/_next-internal_server_app_(auth)_sign-up_page_actions_8a0f9bfc.js")
+R.m(16834)
+module.exports=R.m(16834).exports

@@ -1,0 +1,26 @@
+/* [project]/app/geist_a2607664.module.css [app-client] (css) */
+@font-face {
+  font-family: geist;
+  src: url("../media/GeistVF-s.p.4c3c0b96.woff") format("woff");
+  font-display: swap;
+  font-weight: 100 900;
+}
+
+@font-face {
+  font-family: geist Fallback;
+  src: local(Arial);
+  ascent-override: 85.83%;
+  descent-override: 20.52%;
+  line-gap-override: 9.33%;
+  size-adjust: 107.19%;
+}
+
+.geist_a2607664-module__qSGtAW__className {
+  font-family: geist, geist Fallback;
+}
+
+.geist_a2607664-module__qSGtAW__variable {
+  --font-geist-sans: "geist", "geist Fallback";
+}
+
+/*# sourceMappingURL=app_geist_a2607664_module_css_bad6b30c._.single.css.map*/
