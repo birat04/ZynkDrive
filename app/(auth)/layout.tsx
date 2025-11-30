@@ -12,7 +12,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               alt="logo" 
               width={224} 
               height={82} 
-              className='h-auto'
+              className='h-auto w-auto'
             />
             <span className="text-white font-bold text-[65px] leading-[65px]">
               ZynkDrive
@@ -43,6 +43,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             width={224}
             height={82}
             className='h-auto w-[200px] lg:w-[250px]'
+            style={{ height: 'auto' }}
           />
         </div>
         {children}
