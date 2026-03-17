@@ -1,0 +1,612 @@
+// //
+// # ZynkDrive — Full Stack SaaS Development System Prompt
+
+// ## Project Overview
+// You are helping build ZynkDrive — a cloud storage and file sharing SaaS platform built with Next.js 15, React 19, Appwrite, TailwindCSS, ShadCN, and TypeScript. The reference implementation is adrianhajdin/storage_management_solution on GitHub. Always write production-quality, fully typed TypeScript code.
+
+// ---
+
+// ## Tech Stack
+// - Framework: Next.js 15 (App Router, Server Actions)
+// - UI: React 19, TailwindCSS, ShadCN/UI
+// - Backend/Auth/Storage: Appwrite (cloud.appwrite.io)
+// - Language: TypeScript (strict mode)
+// - Font: Poppins (via next/font)
+// - Charts: Recharts
+// - Deployment: Vercel
+
+// ---
+
+// ## Environment Variables
+// Always reference these — never hardcode values:
+// NEXT_PUBLIC_APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"
+// NEXT_PUBLIC_APPWRITE_PROJECT=""
+// NEXT_PUBLIC_APPWRITE_DATABASE=""
+// NEXT_PUBLIC_APPWRITE_USERS_COLLECTION=""
+// NEXT_PUBLIC_APPWRITE_FILES_COLLECTION=""
+// NEXT_PUBLIC_APPWRITE_BUCKET=""
+// NEXT_APPWRITE_KEY=""
+
+// ---
+
+// ## Project Structure
+// /app
+//   /(auth)
+//     /sign-in/page.tsx
+//     /sign-up/page.tsx
+//     layout.tsx
+//   /(root)
+//     /[type]/page.tsx        ← documents, images, media, others
+//     layout.tsx
+//     page.tsx                ← dashboard
+// /components
+//   ActionDropdown.tsx
+//   ActionsModalContent.tsx
+//   AuthForm.tsx
+//   Card.tsx
+//   Chart.tsx
+//   FileUploader.tsx
+//   FormattedDateTime.tsx
+//   Header.tsx
+//   MobileNavigation.tsx
+//   OTPModal.tsx
+//   Search.tsx
+//   Sidebar.tsx
+//   Thumbnail.tsx
+//   Sort.tsx
+// /constants
+//   index.ts
+// /hooks
+//   useDebounce.ts
+// /lib
+//   appwrite/
+//     index.ts               ← client + server Appwrite instances
+//   actions/
+//     file.actions.ts        ← uploadFile, getFiles, renameFile, deleteFile, updateFileUsers, getTotalSpaceUsed
+//     user.actions.ts        ← createAccount, verifySecret, getCurrentUser, signOutUser, signInUser
+//   utils.ts
+// /types
+//   index.d.ts
+// /public
+//   /assets/icons/           ← full SVG icon set
+
+// ---
+
+// ## Global TypeScript Types (types/index.d.ts)
+// Always use these exact types across the entire codebase:
+
+// declare type FileType = "document" | "image" | "video" | "audio" | "other";
+
+// declare interface ActionType { label: string; icon: string; value: string; }
+
+// declare interface SearchParamProps {
+//   params?: Promise<SegmentParams>;
+//   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+// }
+
+// declare interface UploadFileProps {
+//   file: File;
+//   ownerId: string;
+//   accountId: string;
+//   path: string;
+// }
+// declare interface GetFilesProps {
+//   types: FileType[];
+//   searchText?: string;
+//   sort?: string;
+//   limit?: number;
+// }
+// declare interface RenameFileProps {
+//   fileId: string;
+//   name: string;
+//   extension: string;
+//   path: string;
+// }
+// declare interface UpdateFileUsersProps {
+//   fileId: string;
+//   emails: string[];
+//   path: string;
+// }
+// declare interface DeleteFileProps {
+//   fileId: string;
+//   bucketFileId: string;
+//   path: string;
+// }
+// declare interface FileUploaderProps {
+//   ownerId: string;
+//   accountId: string;
+//   className?: string;
+// }
+// declare interface MobileNavigationProps {
+//   ownerId: string;
+//   accountId: string;
+//   fullName: string;
+//   avatar: string;
+//   email: string;
+// }
+// declare interface SidebarProps {
+//   fullName: string;
+//   avatar: string;
+//   email: string;
+// }
+// declare interface ThumbnailProps {
+//   type: string;
+//   extension: string;
+//   url: string;
+//   className?: string;
+//   imageClassName?: string;
+// }
+// declare interface ShareInputProps {
+//   file: Models.Document;
+//   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+//   onRemove: (email: string) => void;
+// }
+
+// ---
+
+// ## Constants (constants/index.ts)
+// Always use these exact values — never inline them in components:
+
+// export const navItems = [
+//   { name: "Dashboard", icon: "/assets/icons/dashboard.svg", url: "/" },
+//   { name: "Documents", icon: "/assets/icons/documents.svg", url: "/documents" },
+//   { name: "Images",    icon: "/assets/icons/images.svg",    url: "/images" },
+//   { name: "Media",     icon: "/assets/icons/video.svg",     url: "/media" },
+//   { name: "Others",    icon: "/assets/icons/others.svg",    url: "/others" },
+// ];
+
+// export const actionsDropdownItems = [
+//   { label: "Rename",   icon: "/assets/icons/edit.svg",     value: "rename" },
+//   { label: "Details",  icon: "/assets/icons/info.svg",     value: "details" },
+//   { label: "Share",    icon: "/assets/icons/share.svg",    value: "share" },
+//   { label: "Download", icon: "/assets/icons/download.svg", value: "download" },
+//   { label: "Delete",   icon: "/assets/icons/delete.svg",   value: "delete" },
+// ];
+
+// export const sortTypes = [
+//   { label: "Date created (newest)", value: "$createdAt-desc" },
+//   { label: "Created Date (oldest)", value: "$createdAt-asc" },
+//   { label: "Name (A-Z)",            value: "name-asc" },
+//   { label: "Name (Z-A)",            value: "name-desc" },
+//   { label: "Size (Highest)",        value: "size-desc" },
+//   { label: "Size (Lowest)",         value: "size-asc" },
+// ];
+
+// export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+// ---
+
+// ## Utility Functions (lib/utils.ts)
+// Always import from here — never reimplement inline:
+
+// import { clsx, type ClassValue } from "clsx";
+// import { twMerge } from "tailwind-merge";
+
+// export function cn(...inputs: ClassValue[]) {
+//   return twMerge(clsx(inputs));
+// }
+
+// export const parseStringify = (value: unknown) =>
+//   JSON.parse(JSON.stringify(value));
+
+// export const convertFileToUrl = (file: File) => URL.createObjectURL(file);
+
+// export const convertFileSize = (sizeInBytes: number, digits?: number) => {
+//   if (sizeInBytes < 1024) return sizeInBytes + " Bytes";
+//   if (sizeInBytes < 1024 * 1024) return (sizeInBytes / 1024).toFixed(digits || 1) + " KB";
+//   if (sizeInBytes < 1024 * 1024 * 1024) return (sizeInBytes / (1024 * 1024)).toFixed(digits || 1) + " MB";
+//   return (sizeInBytes / (1024 * 1024 * 1024)).toFixed(digits || 2) + " GB";
+// };
+
+// export const calculateAngle = (sizeInBytes: number) => {
+//   const total = 2 * 1024 * 1024 * 1024;
+//   return Number(((sizeInBytes / total) * 360).toFixed(2));
+// };
+
+// export const calculatePercentage = (sizeInBytes: number) => {
+//   const total = 2 * 1024 * 1024 * 1024;
+//   return Number(((sizeInBytes / total) * 100).toFixed(1));
+// };
+
+// export const getFileType = (fileName: string) => {
+//   const extension = fileName.split(".").pop()?.toLowerCase();
+//   if (!extension) return { type: "other", extension: "" };
+//   const documentExtensions = ["pdf","doc","docx","txt","xls","xlsx","csv","rtf","ods","ppt","odp","md","html","htm","epub","pages","fig","psd","ai","indd","xd","sketch","afdesign","afphoto"];
+//   const imageExtensions = ["jpg","jpeg","png","gif","bmp","svg","webp"];
+//   const videoExtensions = ["mp4","avi","mov","mkv","webm"];
+//   const audioExtensions = ["mp3","wav","ogg","flac"];
+//   if (documentExtensions.includes(extension)) return { type: "document", extension };
+//   if (imageExtensions.includes(extension)) return { type: "image", extension };
+//   if (videoExtensions.includes(extension)) return { type: "video", extension };
+//   if (audioExtensions.includes(extension)) return { type: "audio", extension };
+//   return { type: "other", extension };
+// };
+
+// export const formatDateTime = (isoString: string | null | undefined) => {
+//   if (!isoString) return "—";
+//   const date = new Date(isoString);
+//   let hours = date.getHours();
+//   const minutes = date.getMinutes();
+//   const period = hours >= 12 ? "pm" : "am";
+//   hours = hours % 12 || 12;
+//   const time = `${hours}:${minutes.toString().padStart(2, "0")}${period}`;
+//   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+//   return `${time}, ${date.getDate()} ${monthNames[date.getMonth()]}`;
+// };
+
+// export const getFileIcon = (extension: string | undefined, type: FileType | string) => {
+//   switch (extension) {
+//     case "pdf":    return "/assets/icons/file-pdf.svg";
+//     case "doc":    return "/assets/icons/file-doc.svg";
+//     case "docx":   return "/assets/icons/file-docx.svg";
+//     case "csv":    return "/assets/icons/file-csv.svg";
+//     case "txt":    return "/assets/icons/file-txt.svg";
+//     case "xls":
+//     case "xlsx":   return "/assets/icons/file-document.svg";
+//     case "svg":    return "/assets/icons/file-image.svg";
+//     case "mkv": case "mov": case "avi": case "wmv": case "mp4":
+//     case "flv": case "webm": case "m4v": case "3gp":
+//                    return "/assets/icons/file-video.svg";
+//     case "mp3": case "mpeg": case "wav": case "aac": case "flac":
+//     case "ogg": case "wma": case "m4a": case "aiff": case "alac":
+//                    return "/assets/icons/file-audio.svg";
+//     default:
+//       switch (type) {
+//         case "image":    return "/assets/icons/file-image.svg";
+//         case "document": return "/assets/icons/file-document.svg";
+//         case "video":    return "/assets/icons/file-video.svg";
+//         case "audio":    return "/assets/icons/file-audio.svg";
+//         default:         return "/assets/icons/file-other.svg";
+//       }
+//   }
+// };
+
+// export const constructFileUrl = (bucketFileId: string) =>
+//   `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
+
+// export const constructDownloadUrl = (bucketFileId: string) =>
+//   `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/download?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
+
+// export const getUsageSummary = (totalSpace: any) => [
+//   { title: "Documents", size: totalSpace.document.size, latestDate: totalSpace.document.latestDate, icon: "/assets/icons/file-document-light.svg", url: "/documents" },
+//   { title: "Images",    size: totalSpace.image.size,    latestDate: totalSpace.image.latestDate,    icon: "/assets/icons/file-image-light.svg",    url: "/images" },
+//   {
+//     title: "Media",
+//     size: totalSpace.video.size + totalSpace.audio.size,
+//     latestDate: totalSpace.video.latestDate > totalSpace.audio.latestDate ? totalSpace.video.latestDate : totalSpace.audio.latestDate,
+//     icon: "/assets/icons/file-video-light.svg",
+//     url: "/media",
+//   },
+//   { title: "Others", size: totalSpace.other.size, latestDate: totalSpace.other.latestDate, icon: "/assets/icons/file-other-light.svg", url: "/others" },
+// ];
+
+// export const getFileTypesParams = (type: string) => {
+//   switch (type) {
+//     case "documents": return ["document"];
+//     case "images":    return ["image"];
+//     case "media":     return ["video", "audio"];
+//     case "others":    return ["other"];
+//     default:          return ["document"];
+//   }
+// };
+
+// ---
+
+// ## Hook (hooks/useDebounce.ts)
+// Always use this for search inputs — never setTimeout inline in components:
+
+// import { useEffect, useState } from "react";
+
+// export function useDebounce<T>(value: T, delay = 500): T {
+//   const [debouncedValue, setDebouncedValue] = useState<T>(value);
+//   useEffect(() => {
+//     const timer = setTimeout(() => setDebouncedValue(value), delay);
+//     return () => clearTimeout(timer);
+//   }, [value, delay]);
+//   return debouncedValue;
+// }
+
+// ---
+
+// ## Appwrite Setup (lib/appwrite/index.ts)
+// Two separate instances: one for server-side (uses API key), one for client-side (uses session cookie):
+
+// "use server";
+// import { Account, Avatars, Client, Databases, Storage } from "node-appwrite";
+// import { cookies } from "next/headers";
+
+// export const createAdminClient = async () => {
+//   const client = new Client()
+//     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+//     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
+//     .setKey(process.env.NEXT_APPWRITE_KEY!);
+//   return {
+//     get account() { return new Account(client); },
+//     get databases() { return new Databases(client); },
+//     get storage() { return new Storage(client); },
+//     get avatars() { return new Avatars(client); },
+//   };
+// };
+
+// export const createSessionClient = async () => {
+//   const client = new Client()
+//     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+//     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
+//   const session = (await cookies()).get("appwrite-session");
+//   if (!session || !session.value) throw new Error("No session");
+//   client.setSession(session.value);
+//   return {
+//     get account() { return new Account(client); },
+//     get databases() { return new Databases(client); },
+//   };
+// };
+
+// ---
+
+// ## Appwrite Database Schema
+// Collections needed in your Appwrite project:
+
+// ### users collection
+// - fullName: string (required)
+// - email: string (required)
+// - avatar: string (required)
+// - accountId: string (required)
+
+// ### files collection
+// - name: string (required)
+// - url: string (required)
+// - type: enum → document | image | video | audio | other (required)
+// - bucketFileId: string (required)
+// - accountId: string (required)
+// - owner: relationship → users (required)
+// - extension: string (required)
+// - size: integer (required)
+// - users: string[] (array of emails with access)
+
+// ---
+
+// ## Server Actions Pattern
+// All data mutations use Next.js Server Actions with "use server" at the top. Always:
+// 1. Use createAdminClient() for writes and reads that require elevated access
+// 2. Use createSessionClient() for reading the current user's session
+// 3. Call revalidatePath(path) after any mutation
+// 4. Wrap everything in try/catch and return parseStringify(result) — never return raw Appwrite objects (they contain non-serializable values)
+// 5. Never expose NEXT_APPWRITE_KEY to the client — it only goes in server actions
+
+// Example pattern:
+// "use server";
+// import { createAdminClient } from "@/lib/appwrite";
+// import { revalidatePath } from "next/cache";
+// import { parseStringify } from "@/lib/utils";
+
+// export const renameFile = async ({ fileId, name, extension, path }: RenameFileProps) => {
+//   const { databases } = await createAdminClient();
+//   try {
+//     const updatedFile = await databases.updateDocument(
+//       process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+//       process.env.NEXT_PUBLIC_APPWRITE_FILES_COLLECTION!,
+//       fileId,
+//       { name: `${name}.${extension}` }
+//     );
+//     revalidatePath(path);
+//     return parseStringify(updatedFile);
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
+
+// ---
+
+// ## Authentication Flow
+// ZynkDrive uses Appwrite email OTP (no passwords):
+
+// 1. User enters email → createAccount() or signInUser() is called
+// 2. Appwrite sends a 6-digit OTP to the email
+// 3. OTPModal component renders — user enters the code
+// 4. verifySecret() is called → creates a session → sets "appwrite-session" cookie
+// 5. User is redirected to dashboard
+
+// Key functions in lib/actions/user.actions.ts:
+// - createAccount: creates Appwrite account + user document, sends OTP
+// - signInUser: finds existing user by email, sends OTP
+// - verifySecret: verifies OTP, creates session cookie
+// - getCurrentUser: reads session cookie, fetches user document from DB
+// - signOutUser: deletes session, clears cookie
+
+// Session cookie name: "appwrite-session"
+// After verifySecret, set cookie like:
+// (await cookies()).set("appwrite-session", session.secret, {
+//   path: "/",
+//   httpOnly: true,
+//   sameSite: "strict",
+//   secure: true,
+// });
+
+// ---
+
+// ## File Upload Flow
+// 1. User drops/selects files in FileUploader (react-dropzone)
+// 2. Client calls uploadFile() server action for each file
+// 3. uploadFile():
+//    a. Calls storage.createFile() with InputFile.fromBuffer()
+//    b. Constructs the view URL using constructFileUrl()
+//    c. Creates a document in the files collection with metadata
+//    d. Calls revalidatePath()
+// 4. FileUploader shows a fixed bottom-right preview panel with upload progress
+// 5. MAX_FILE_SIZE = 50MB enforced client-side before upload
+
+// ---
+
+// ## File Operations (ActionDropdown)
+// The ActionDropdown component handles 5 actions via a ShadCN Dialog/AlertDialog:
+// - rename: updates document name field in files collection
+// - details: shows read-only file metadata (ActionsModalContent)
+// - share: updates the users[] array on the file document (add/remove emails)
+// - download: uses constructDownloadUrl() to trigger browser download
+// - delete: calls storage.deleteFile() + databases.deleteDocument()
+
+// State shape inside ActionDropdown:
+// const [action, setAction] = useState<ActionType | null>(null);
+// const [name, setName] = useState(file.name);
+// const [isLoading, setIsLoading] = useState(false);
+// const [emails, setEmails] = useState<string[]>([]);
+
+// ---
+
+// ## Dashboard Data
+// getTotalSpaceUsed() server action queries ALL files for the current user and groups them:
+// {
+//   document: { size: number, latestDate: string },
+//   image:    { size: number, latestDate: string },
+//   video:    { size: number, latestDate: string },
+//   audio:    { size: number, latestDate: string },
+//   other:    { size: number, latestDate: string },
+//   used: number,   // total bytes used
+//   all: Models.Document[],  // last 10 files for recent list
+// }
+// Pass this to getUsageSummary() to get the 4 summary cards array.
+// The Chart component receives "used" bytes and renders a Recharts RadialBarChart.
+// Total quota = 2GB (2 * 1024 * 1024 * 1024 bytes).
+
+// ---
+
+// ## Routing & Pages
+// /(auth) routes are public — redirect to "/" if user is already logged in
+// /(root) routes are protected — redirect to "/sign-in" if no session
+
+// /                 → Dashboard (getTotalSpaceUsed + getFiles limit:10)
+// /documents        → getFiles({ types: ["document"] })
+// /images           → getFiles({ types: ["image"] })
+// /media            → getFiles({ types: ["video", "audio"] })
+// /others           → getFiles({ types: ["other"] })
+
+// All type pages use the same [type]/page.tsx and read searchParams for:
+// - searchText: string  → passed to getFiles
+// - sort: string        → "$createdAt-desc" default
+
+// ---
+
+// ## Search
+// - Search component is in the Header (desktop) and MobileNavigation
+// - Uses useDebounce(query, 300) before triggering getFiles
+// - Results appear in a floating panel below the input (absolute positioned)
+// - Searches across ALL file types regardless of current page
+// - Uses router.push with ?searchText= query param to update results
+
+// ---
+
+// ## Component Conventions
+// - All components are in /components at the root level (not /app)
+// - Use "use client" only when needed (event handlers, hooks, browser APIs)
+// - Server Components by default — fetch data at the page level and pass as props
+// - ShadCN components are imported from @/components/ui/
+// - Always use the cn() utility for conditional classNames
+// - Thumbnail component: shows file type icon for documents/other, actual image preview for images
+// - FormattedDateTime: small reusable component wrapping formatDateTime()
+// - Card component: clickable file card used in the grid on type pages
+
+// ---
+
+// ## Tailwind Design Tokens
+// Brand color: #FA7275 (brand) / #EA6365 (brand-100)
+// Text scale: light-100 (#333F4E) → light-200 (#A3B2C7) → light-300/400 (backgrounds)
+// Dark backgrounds: dark-100 (#04050C) / dark-200 (#131524)
+// Shadows: shadow-drop-1, shadow-drop-2, shadow-drop-3
+// All defined in tailwind.config.ts — never hardcode hex values in components.
+
+// Key layout classes (defined in globals.css @layer utilities):
+// - .main-content        → main scrollable area with rounded corners
+// - .dashboard-container → 2-col responsive grid
+// - .file-list           → 4-col responsive file card grid
+// - .page-container      → max-w-7xl centered column
+// - .primary-btn         → brand-colored rounded-full button
+// - .flex-center         → flex items-center justify-center
+// - .shad-no-focus       → removes all focus rings (used on inputs)
+// - .h1 through .h5      → typography scale
+
+// ---
+
+// ## Code Quality Rules
+// 1. TypeScript strict — no `any` except in getUsageSummary's totalSpace param (Appwrite returns untyped docs)
+// 2. All server actions return parseStringify() results — never raw Appwrite objects
+// 3. All async server actions wrapped in try/catch — log errors, don't throw to client
+// 4. revalidatePath() called after every mutation
+// 5. No inline styles — only Tailwind classes
+// 6. No hardcoded strings — use constants/index.ts
+// 7. No hardcoded colors — use Tailwind tokens from config
+// 8. File size checks happen client-side (before upload) AND should be enforced in the Appwrite bucket settings
+// 9. Image optimization: use next/image for all images, never <img>
+// 10. Icons: use Next.js <Image> with the SVG paths from /public/assets/icons/
+
+// ---
+
+// ## Common Mistakes to Avoid
+// - Never import from "appwrite" (client SDK) in server actions — use "node-appwrite"
+// - Never call createSessionClient() without handling the "No session" error — it throws
+// - Never return raw Appwrite Models.Document from server actions — always parseStringify()
+// - Never put NEXT_APPWRITE_KEY in any client component or NEXT_PUBLIC_ variable
+// - Never forget revalidatePath() after mutations — the UI won't update without it
+// - Never use window or document in Server Components
+// - The files collection "users" field is an array of email strings — not user IDs
+// - Appwrite queries use Query.equal(), Query.contains(), Query.orderDesc() etc. — not raw SQL
+// - When querying files for a user, filter by: Query.or([Query.equal("owner", [userId]), Query.contains("users", [email])])
+
+// ---
+
+// ## Appwrite Query Patterns
+// Always import Query from "node-appwrite":
+
+// // Get all files for a user (owned + shared)
+// const queries = [
+//   Query.or([
+//     Query.equal("owner", [currentUser.$id]),
+//     Query.contains("users", [currentUser.email]),
+//   ]),
+// ];
+
+// // Filter by type
+// if (types.length > 0) queries.push(Query.equal("type", types));
+
+// // Search by name
+// if (searchText) queries.push(Query.contains("name", searchText));
+
+// // Sort
+// const [sortBy, orderBy] = sort.split("-");
+// queries.push(orderBy === "asc" ? Query.orderAsc(sortBy) : Query.orderDesc(sortBy));
+
+// // Limit
+// if (limit) queries.push(Query.limit(limit));
+
+// const files = await databases.listDocuments(
+//   process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+//   process.env.NEXT_PUBLIC_APPWRITE_FILES_COLLECTION!,
+//   queries
+// );
+
+// ---
+
+// ## ShadCN Components Used
+// Run these if not already installed:
+// npx shadcn@latest add button
+// npx shadcn@latest add dialog
+// npx shadcn@latest add alert-dialog
+// npx shadcn@latest add dropdown-menu
+// npx shadcn@latest add form
+// npx shadcn@latest add input
+// npx shadcn@latest add label
+// npx shadcn@latest add select
+// npx shadcn@latest add sheet
+// npx shadcn@latest add toast
+// npx shadcn@latest add input-otp
+// npx shadcn@latest add progress
+
+// ---
+
+// ## Dependencies to Install
+// npm install node-appwrite        # Appwrite server SDK
+// npm install react-dropzone       # File upload drag-and-drop
+// npm install recharts             # Dashboard storage chart
+// npm install clsx tailwind-merge  # cn() utility
+// npm install tailwindcss-animate  # ShadCN animations
+
+// //
