@@ -7,13 +7,13 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { OTPModal } from "./OTPModal";
+import { OTPModal } from "@/components/OTPModal";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createAccount, signInUser } from "@/lib/actions/user.actions";
 
-type AuthFormType = "sign-in" | "sign-up";
+export type AuthFormType = "sign-in" | "sign-up";
 
 const makeSchema = (type: AuthFormType) =>
   z.object({
@@ -21,7 +21,7 @@ const makeSchema = (type: AuthFormType) =>
     email: z.string().email("Enter a valid email"),
   });
 
-export const AuthForm = ({ type }: { type: AuthFormType }) => {
+export default function AuthForm({ type }: { type: AuthFormType }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [otpAccountId, setOtpAccountId] = useState<string | null>(null);
@@ -153,4 +153,4 @@ export const AuthForm = ({ type }: { type: AuthFormType }) => {
       )}
     </>
   );
-};
+}

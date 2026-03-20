@@ -1,6 +1,6 @@
 "use server";
 
-import { Query, ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -16,16 +16,15 @@ interface SignInUserParams {
   email: string;
 }
 
-interface VerifySecretParams {
-  accountId: string;
-  password: string;
-}
-
 interface SendEmailOTPParams {
   accountId: string;
   email: string;
 }
 
+interface VerifySecretParams {
+  accountId: string;
+  password: string;
+}
 export const createAccount = async ({ fullName, email }: CreateAccountParams) => {
   const { account, databases, avatars } = await createAdminClient();
 
@@ -58,7 +57,6 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
         }
       );
     } else {
-      // Always (re)send OTP for existing accounts
       await account.createEmailToken(accountId, email);
     }
 
@@ -80,11 +78,9 @@ export const signInUser = async ({ email }: SignInUserParams) => {
 
     const user = users.documents?.[0];
     const accountId = user?.accountId as string | undefined;
-
     if (!accountId) return;
 
     await account.createEmailToken(accountId, email);
-
     return parseStringify({ accountId });
   } catch (error) {
     console.error(error);
@@ -137,7 +133,6 @@ export const getCurrentUser = async () => {
 
     return parseStringify(user);
   } catch {
-    // createSessionClient throws "No session" when logged out
     return null;
   }
 };

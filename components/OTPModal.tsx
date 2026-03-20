@@ -43,6 +43,7 @@ export const OTPModal = ({ accountId, email, onClose }: OTPModalProps) => {
     try {
       const result = await verifySecret({ accountId, password: otp });
       if (!result?.sessionId) throw new Error("Invalid code. Please try again.");
+
       router.push("/");
       router.refresh();
       setOpen(false);

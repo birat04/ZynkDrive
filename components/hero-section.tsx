@@ -141,20 +141,22 @@ export function HeroSection() {
           </div>
 
           <h1
-            className={`max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl transition-all duration-700 delay-100 ${
+            className={`max-w-4xl text-4xl font-bold leading-tight tracking-tight text-light-100 sm:text-6xl lg:text-7xl transition-all duration-700 delay-100 ${
               mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
             }`}
           >
             <span className="text-balance block">The future of</span>
-            <span className="relative mt-2 block">
-              <span className="gradient-text-animated text-glow">{scrambledText}</span>
-              <span className="animate-cursor-blink ml-1 text-primary">|</span>
+            <span className="relative mt-0.5 block">
+              <span className="text-brand drop-shadow-sm">
+                {scrambledText}
+              </span>
+              <span className="animate-cursor-blink ml-1 text-brand">|</span>
             </span>
           </h1>
 
           {/* Description with wave effect */}
           <p
-            className={`mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl transition-all duration-700 delay-200 ${
+            className={`mt-3 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl transition-all duration-700 delay-200 ${
               mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
             }`}
           >

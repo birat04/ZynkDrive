@@ -17,7 +17,7 @@ const geistMono = localFont({
 
 // <CHANGE> Updated metadata for ZynkDrive
 export const metadata: Metadata = {
-  title: "ZynkDrive - Cloud Storage Platform | Coming Soon",
+  title: "ZynkDrive - Cloud Storage Platform",
   description:
     "A modern, full-featured cloud storage and file sharing platform. Effortlessly upload, organize, and share files with powerful search, sharing, and dashboard features.",
   generator: "v0.app",

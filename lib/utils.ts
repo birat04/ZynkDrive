@@ -31,7 +31,6 @@ export const calculatePercentage = (sizeInBytes: number) => {
 
 export const getFileType = (fileName: string) => {
   const extension = fileName.split(".").pop()?.toLowerCase();
-
   if (!extension) return { type: "other", extension: "" };
 
   const documentExtensions = [
@@ -69,7 +68,6 @@ export const getFileType = (fileName: string) => {
   if (imageExtensions.includes(extension)) return { type: "image", extension };
   if (videoExtensions.includes(extension)) return { type: "video", extension };
   if (audioExtensions.includes(extension)) return { type: "audio", extension };
-
   return { type: "other", extension };
 };
 
@@ -80,7 +78,6 @@ export const formatDateTime = (isoString: string | null | undefined) => {
   let hours = date.getHours();
   const minutes = date.getMinutes();
   const period = hours >= 12 ? "pm" : "am";
-
   hours = hours % 12 || 12;
 
   const time = `${hours}:${minutes.toString().padStart(2, "0")}${period}`;
