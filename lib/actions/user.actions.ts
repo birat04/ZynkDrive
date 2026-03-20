@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
-import { parseStringify } from "@/lib/utils";
+import { parseStringify, constructInitialsAvatarUrl } from "@/lib/utils";
 
 interface CreateAccountParams {
   fullName: string;
@@ -26,7 +26,7 @@ interface VerifySecretParams {
   password: string;
 }
 export const createAccount = async ({ fullName, email }: CreateAccountParams) => {
-  const { account, databases, avatars } = await createAdminClient();
+  const { account, databases } = await createAdminClient();
 
   try {
     const existingUsers = await databases.listDocuments(
@@ -43,7 +43,7 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
         : (await account.createEmailToken(ID.unique(), email)).userId;
 
     if (!existingUser) {
-      const avatar = avatars.getInitials(fullName);
+      const avatar = constructInitialsAvatarUrl(fullName);
 
       await databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
@@ -53,7 +53,8 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
           fullName,
           email,
           avatar,
-          accountId,
+          accountId
+          
         }
       );
     } else {
@@ -107,13 +108,14 @@ export const verifySecret = async ({ accountId, password }: VerifySecretParams) 
     (await cookies()).set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
-      sameSite: "strict",
-      secure: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     });
 
-    return parseStringify({ sessionId: session.$id });
+    redirect("/");
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -131,7 +133,12 @@ export const getCurrentUser = async () => {
     const user = users.documents?.[0];
     if (!user) return null;
 
-    return parseStringify(user);
+    // Avatar fallback: use Appwrite initials URL if collection doesn't store avatar
+    const fullName = (user.fullName as string) ?? "User";
+    const avatar =
+      (user.avatar as string) ?? constructInitialsAvatarUrl(fullName);
+
+    return parseStringify({ ...user, avatar });
   } catch {
     return null;
   }

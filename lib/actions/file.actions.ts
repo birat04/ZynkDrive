@@ -1,6 +1,7 @@
 "use server";
 
 import { ID, Models, Query } from "node-appwrite";
+import { InputFile } from "node-appwrite/file";
 import { revalidatePath } from "next/cache";
 
 import { createAdminClient } from "@/lib/appwrite";
@@ -17,10 +18,13 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
   const { storage, databases } = await createAdminClient();
 
   try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const inputFile = InputFile.fromBuffer(buffer, file.name);
+
     const uploaded = await storage.createFile(
       process.env.NEXT_PUBLIC_APPWRITE_BUCKET!,
       ID.unique(),
-      file
+      inputFile
     );
 
     const { type, extension } = getFileType(file.name);

@@ -1,0 +1,54 @@
+import Link from "next/link";
+import { Thumbnail } from "@/components/Thumbnail";
+import { FormattedDateTime } from "@/components/FormattedDateTime";
+import ActionDropdown from "@/components/ActionDropdown";
+import { convertFileSize } from "@/lib/utils";
+
+type FileDoc = {
+  $id: string;
+  name: string;
+  type?: string;
+  extension?: string;
+  url?: string;
+  size?: number | string;
+  $updatedAt?: string;
+  bucketFileId?: string;
+  users?: string[];
+  owner?: { fullName?: string } | string;
+  [key: string]: unknown;
+};
+
+const Card = ({ file }: { file: FileDoc }) => {
+  const size = typeof file.size === "number" ? file.size : Number(file.size || 0);
+  const type = file.type || "other";
+  const fileUrl = (file.url as string) || "#";
+
+  return (
+    <div className="file-card relative">
+      <Link href={fileUrl} target="_blank" rel="noopener noreferrer" className="block">
+        <div className="relative">
+          <Thumbnail
+            type={type}
+            extension={file.extension ?? ""}
+            url={file.url ?? ""}
+            className="h-24 w-full"
+            imageClassName="h-24 w-full object-cover"
+          />
+        </div>
+        <p className="file-card-title">{file.name}</p>
+        <div className="file-card-meta">
+          <FormattedDateTime date={file.$updatedAt} />
+          <span>{convertFileSize(size)}</span>
+        </div>
+      </Link>
+      <div
+        className="absolute right-2 top-2"
+        onClick={(e) => e.preventDefault()}
+      >
+        <ActionDropdown file={file} />
+      </div>
+    </div>
+  );
+};
+
+export default Card;

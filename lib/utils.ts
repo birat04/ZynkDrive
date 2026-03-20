@@ -159,6 +159,9 @@ export const constructFileUrl = (bucketFileId: string) =>
 export const constructDownloadUrl = (bucketFileId: string) =>
   `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/download?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
 
+export const constructInitialsAvatarUrl = (name: string, width = 200, height = 200) =>
+  `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/avatars/initials?name=${encodeURIComponent(name)}&width=${width}&height=${height}&project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getUsageSummary = (totalSpace: any) => [
   {

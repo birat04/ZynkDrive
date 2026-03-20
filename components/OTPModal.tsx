@@ -1,6 +1,4 @@
 "use client";
-
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -22,7 +20,6 @@ interface OTPModalProps {
 }
 
 export const OTPModal = ({ accountId, email, onClose }: OTPModalProps) => {
-  const router = useRouter();
 
   const [open, setOpen] = useState(true);
   const [otp, setOtp] = useState("");
@@ -41,14 +38,12 @@ export const OTPModal = ({ accountId, email, onClose }: OTPModalProps) => {
     setErrorMessage(null);
 
     try {
-      const result = await verifySecret({ accountId, password: otp });
-      if (!result?.sessionId) throw new Error("Invalid code. Please try again.");
-
-      router.push("/");
-      router.refresh();
-      setOpen(false);
+      await verifySecret({ accountId, password: otp });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Something went wrong.");
+      if (error && typeof error === "object" && "digest" in error && String((error as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) {
+        return;
+      }
+      setErrorMessage(error instanceof Error ? error.message : "Invalid code. Please try again.");
     } finally {
       setIsLoading(false);
     }
