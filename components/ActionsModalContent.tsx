@@ -12,11 +12,16 @@ type FileDoc = {
   $createdAt?: string;
   $updatedAt?: string;
   users?: string[];
+  owner?: string | { fullName?: string };
   [key: string]: unknown;
 };
 
 export const FileDetails = ({ file }: { file: FileDoc }) => {
   const size = typeof file.size === "number" ? file.size : Number(file.size || 0);
+  const ownerName =
+    typeof file.owner === "string"
+      ? file.owner
+      : file.owner?.fullName || "Unknown";
 
   return (
     <div className="flex flex-col gap-4">
@@ -30,16 +35,20 @@ export const FileDetails = ({ file }: { file: FileDoc }) => {
       </div>
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex justify-between">
+          <span className="text-light-200">Format</span>
+          <span className="text-light-100 uppercase">{file.extension || "N/A"}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-light-200">Size</span>
           <span className="text-light-100">{convertFileSize(size)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-light-200">Created</span>
-          <FormattedDateTime date={file.$createdAt} />
+          <span className="text-light-200">Owner</span>
+          <span className="text-light-100">{ownerName}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-light-200">Modified</span>
-          <FormattedDateTime date={file.$updatedAt} />
+          <span className="text-light-200">Last edit</span>
+          <FormattedDateTime isoString={file.$updatedAt || file.$createdAt} />
         </div>
       </div>
     </div>

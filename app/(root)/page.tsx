@@ -1,14 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import { getTotalSpaceUsed } from "@/lib/actions/file.actions";
+import { getFiles, getTotalSpaceUsed } from "@/lib/actions/file.actions";
 import { getUsageSummary, convertFileSize } from "@/lib/utils";
 import { Chart } from "@/components/Chart";
-import Card from "@/components/Card";
 import { FormattedDateTime } from "@/components/FormattedDateTime";
+import { Thumbnail } from "@/components/Thumbnail";
 
 export default async function DashboardPage() {
-  const totalSpace = await getTotalSpaceUsed();
+  const [totalSpace, recentFilesResponse] = await Promise.all([
+    getTotalSpaceUsed(),
+    getFiles({ types: ["document", "image", "video", "audio", "other"], limit: 10 }),
+  ]);
 
   if (!totalSpace || typeof totalSpace !== "object") {
     return (
@@ -19,7 +22,7 @@ export default async function DashboardPage() {
   }
 
   const usageSummary = getUsageSummary(totalSpace);
-  const recentFiles = (totalSpace.all ?? []) as Array<{
+  const recentFiles = (Array.isArray(recentFilesResponse) ? recentFilesResponse : []) as Array<{
     $id: string;
     name: string;
     type?: string;
@@ -39,22 +42,7 @@ export default async function DashboardPage() {
 
       <div className="dashboard-container mt-6">
         <div className="dashboard-left">
-          <div className="chart">
-            <Chart used={used} />
-          </div>
-
-          <div className="dashboard-recent-files">
-            <h2 className="h5 mb-4 text-light-100">Recent files</h2>
-            {recentFiles.length === 0 ? (
-              <p className="body-2 text-light-200">No files yet.</p>
-            ) : (
-              <div className="file-list">
-                {recentFiles.map((file) => (
-                  <Card key={file.$id} file={file} />
-                ))}
-              </div>
-            )}
-          </div>
+          <Chart used={used} />
         </div>
 
         <div className="dashboard-right">
@@ -77,11 +65,43 @@ export default async function DashboardPage() {
                 </p>
               </div>
               <FormattedDateTime
-                date={item.latestDate}
+                isoString={item.latestDate}
                 className="caption shrink-0 text-light-200"
               />
             </Link>
           ))}
+
+          <div className="dashboard-recent-files">
+            <h2 className="h5 mb-4 text-light-100">Recent files</h2>
+            {recentFiles.length === 0 ? (
+              <p className="body-2 text-light-200">No files yet.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {recentFiles.map((file) => (
+                  <Link
+                    key={file.$id}
+                    href={file.url ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="search-result-item"
+                  >
+                    <Thumbnail
+                      type={file.type || "other"}
+                      extension={file.extension || ""}
+                      url={file.url || ""}
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <p className="truncate text-sm font-medium text-light-100">{file.name}</p>
+                      <FormattedDateTime
+                        isoString={(file.$updatedAt || file.$createdAt) as string | undefined}
+                        className="caption text-light-200"
+                      />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

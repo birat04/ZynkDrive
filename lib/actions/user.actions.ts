@@ -26,7 +26,7 @@ interface VerifySecretParams {
   password: string;
 }
 export const createAccount = async ({ fullName, email }: CreateAccountParams) => {
-  const { account, databases } = await createAdminClient();
+  const { account, avatars, databases } = await createAdminClient();
 
   try {
     const existingUsers = await databases.listDocuments(
@@ -43,7 +43,7 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
         : (await account.createEmailToken(ID.unique(), email)).userId;
 
     if (!existingUser) {
-      const avatar = constructInitialsAvatarUrl(fullName);
+      const avatar = avatars.getInitials(fullName);
 
       await databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
@@ -52,9 +52,9 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
         {
           fullName,
           email,
-          avatar,
+          avatar: avatar.toString(),
           accountId
-          
+
         }
       );
     } else {
@@ -108,11 +108,11 @@ export const verifySecret = async ({ accountId, password }: VerifySecretParams) 
     (await cookies()).set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
 
-    redirect("/");
+    return parseStringify({ sessionId: session.$id });
   } catch (error) {
     console.error(error);
     throw error;
@@ -124,13 +124,41 @@ export const getCurrentUser = async () => {
     const { account, databases } = await createSessionClient();
     const currentAccount = await account.get();
 
-    const users = await databases.listDocuments(
+    const usersByAccountId = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
       process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION!,
       [Query.equal("accountId", [currentAccount.$id])]
     );
 
-    const user = users.documents?.[0];
+    let user = usersByAccountId.documents?.[0];
+
+    
+    if (!user && currentAccount.email) {
+      const usersByEmail = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+        process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION!,
+        [Query.equal("email", [currentAccount.email])]
+      );
+
+      user = usersByEmail.documents?.[0];
+
+      if (user && (user.accountId as string | undefined) !== currentAccount.$id) {
+        try {
+          const { databases: adminDatabases } = await createAdminClient();
+          await adminDatabases.updateDocument(
+            process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+            process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION!,
+            user.$id,
+            { accountId: currentAccount.$id }
+          );
+
+          user = { ...user, accountId: currentAccount.$id };
+        } catch (syncError) {
+          console.error(syncError);
+        }
+      }
+    }
+
     if (!user) return null;
 
     // Avatar fallback: use Appwrite initials URL if collection doesn't store avatar

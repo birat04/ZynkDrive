@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -78,6 +79,7 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
           path,
         });
         success = !!result;
+        if (success) toast.success("File renamed successfully");
       } else if (action.value === "share") {
         const result = await updateFileUsers({
           fileId: file.$id,
@@ -85,6 +87,7 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
           path,
         });
         success = !!result;
+        if (success) toast.success("Sharing updated successfully");
       } else if (action.value === "delete") {
         const result = await deleteFile({
           fileId: file.$id,
@@ -92,9 +95,13 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
           path,
         });
         success = !!result;
+        if (success) toast.success("File deleted successfully");
       }
 
       if (success) closeAll();
+      if (!success) toast.error("Action failed. Please try again.");
+    } catch {
+      toast.error("Action failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +114,13 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
       emails: updated,
       path,
     });
-    if (result) setEmails(updated);
+
+    if (result) {
+      setEmails(updated);
+      toast.success("User removed from shared access");
+    } else {
+      toast.error("Failed to update shared users");
+    }
   };
 
   const content = action && (

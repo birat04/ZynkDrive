@@ -20,7 +20,6 @@ interface OTPModalProps {
 }
 
 export const OTPModal = ({ accountId, email, onClose }: OTPModalProps) => {
-
   const [open, setOpen] = useState(true);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -38,11 +37,13 @@ export const OTPModal = ({ accountId, email, onClose }: OTPModalProps) => {
     setErrorMessage(null);
 
     try {
-      await verifySecret({ accountId, password: otp });
-    } catch (error) {
-      if (error && typeof error === "object" && "digest" in error && String((error as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) {
-        return;
+      const session = await verifySecret({ accountId, password: otp });
+      if (!session?.sessionId) {
+        throw new Error("Failed to verify code.");
       }
+
+      window.location.assign("/");
+    } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Invalid code. Please try again.");
     } finally {
       setIsLoading(false);

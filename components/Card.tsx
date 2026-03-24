@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Thumbnail } from "@/components/Thumbnail";
 import { FormattedDateTime } from "@/components/FormattedDateTime";
 import ActionDropdown from "@/components/ActionDropdown";
-import { convertFileSize } from "@/lib/utils";
+import { constructFileUrl, convertFileSize } from "@/lib/utils";
 
 type FileDoc = {
   $id: string;
@@ -15,13 +15,14 @@ type FileDoc = {
   bucketFileId?: string;
   users?: string[];
   owner?: { fullName?: string } | string;
+  accountId?: string;
   [key: string]: unknown;
 };
 
 const Card = ({ file }: { file: FileDoc }) => {
   const size = typeof file.size === "number" ? file.size : Number(file.size || 0);
   const type = file.type || "other";
-  const fileUrl = (file.url as string) || "#";
+  const fileUrl = file.bucketFileId ? constructFileUrl(file.bucketFileId) : (file.url as string) || "#";
 
   return (
     <div className="file-card relative">
@@ -37,7 +38,7 @@ const Card = ({ file }: { file: FileDoc }) => {
         </div>
         <p className="file-card-title">{file.name}</p>
         <div className="file-card-meta">
-          <FormattedDateTime date={file.$updatedAt} />
+          <FormattedDateTime isoString={file.$updatedAt} />
           <span>{convertFileSize(size)}</span>
         </div>
       </Link>

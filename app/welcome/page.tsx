@@ -1,4 +1,4 @@
-import { Header } from "@/components/header";
+import { WelcomeHeader } from "@/components/WelcomeHeader";
 import { HeroSection } from "@/components/hero-section";
 import { BuildProgress } from "@/components/build-progress";
 import { FeaturesPreview } from "@/components/features-preview";
@@ -13,7 +13,7 @@ export default function WelcomePage() {
       <CyberBackground />
 
       <div className="relative z-10">
-        <Header />
+        <WelcomeHeader />
         <HeroSection />
         <BuildProgress />
         <FeaturesPreview />

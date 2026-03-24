@@ -8,7 +8,7 @@ export const Thumbnail = ({
   imageClassName,
   className,
 }: ThumbnailProps) => {
-  const isImage = type === "image" && extension !== "svg";
+  const isImage = type === "image";
 
   return (
     <div className={cn("thumbnail", className)}>

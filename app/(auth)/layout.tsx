@@ -1,7 +1,16 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+import { getCurrentUser } from "@/lib/actions/user.actions";
+
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
+
+  if (user) {
+    redirect("/");
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
@@ -37,7 +46,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               alt="logo"
               width={224}
               height={82}
-              className="h-auto w-[200px] sm:w-[240px]"
+              className="h-auto w-[200px] sm:w-60"
             />
           </div>
           {children}

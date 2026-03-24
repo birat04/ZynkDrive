@@ -2,8 +2,7 @@ import { getCurrentUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import MobileNavigation from "@/components/MobileNavigation";
-import AppHeader from "@/components/AppHeader";
-import { Toaster } from "sonner";
+import Header from "@/components/header";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +32,14 @@ export default async function RootLayout({
           avatar={avatar}
           email={email}
         />
-        <AppHeader ownerId={userId} accountId={accountId} />
+        <Header
+          ownerId={userId}
+          accountId={accountId}
+          fullName={fullName}
+          avatar={avatar}
+        />
         <main className="main-content flex-1">{children}</main>
       </div>
-      <Toaster position="bottom-right" />
     </div>
   );
 }

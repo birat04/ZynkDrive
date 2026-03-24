@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -19,14 +19,15 @@ type FileDoc = {
 };
 
 const Search = () => {
-  const [query, setQuery] = useState("");
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("searchText") || "";
+  const [query, setQuery] = useState(searchQuery);
   const [results, setResults] = useState<FileDoc[]>([]);
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const path = usePathname();
   const debouncedQuery = useDebounce(query, 300);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -55,6 +56,18 @@ const Search = () => {
     if (!searchQuery) setQuery("");
   }, [searchQuery]);
 
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
   const handleClickItem = (file: FileDoc) => {
     setOpen(false);
     setResults([]);
@@ -66,7 +79,7 @@ const Search = () => {
   };
 
   return (
-    <div className="search-container">
+    <div ref={containerRef} className="search-container">
       <Image
         src="/assets/icons/search.svg"
         alt=""
@@ -102,7 +115,7 @@ const Search = () => {
                     {file.name}
                   </span>
                   <FormattedDateTime
-                    date={file.$updatedAt as string}
+                    isoString={file.$updatedAt as string}
                     className="caption text-light-200"
                   />
                 </div>
