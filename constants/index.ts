@@ -24,6 +24,31 @@ export const navItems = [
     icon: "/assets/icons/others.svg",
     url: "/others",
   },
+  {
+    name: "Starred",
+    icon: "/assets/icons/info.svg",
+    url: "/starred",
+  },
+  {
+    name: "Recent",
+    icon: "/assets/icons/calendar.svg",
+    url: "/recent",
+  },
+  {
+    name: "Shared with me",
+    icon: "/assets/icons/share.svg",
+    url: "/shared-with-me",
+  },
+  {
+    name: "Shared Links",
+    icon: "/assets/icons/share.svg",
+    url: "/shared-links",
+  },
+  {
+    name: "Trash",
+    icon: "/assets/icons/delete.svg",
+    url: "/trash",
+  },
 ];
 
 export const actionsDropdownItems = [

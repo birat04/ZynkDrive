@@ -16,11 +16,11 @@ const milestones = [
     id: 3,
     title: "File Upload System",
     description: "Drag & drop, multi-file uploads",
-    status: "in-progress",
-    progress: 65,
+    status: "completed",
+    progress: 100,
   },
-  { id: 4, title: "Dashboard UI", description: "File browser, grid/list views", status: "upcoming", progress: 0 },
-  { id: 5, title: "Search & Sharing", description: "Full-text search, share links", status: "upcoming", progress: 0 },
+  { id: 4, title: "Dashboard UI", description: "File browser, grid/list views", status: "completed", progress: 100 },
+  { id: 5, title: "Search & Sharing", description: "Full-text search, share links", status: "completed", progress: 100 },
 ]
 
 export function BuildProgress() {
@@ -30,7 +30,7 @@ export function BuildProgress() {
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(55), 500)
+    const timer = setTimeout(() => setProgress(100), 500)
     return () => clearTimeout(timer)
   }, [])
 

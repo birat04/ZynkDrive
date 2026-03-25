@@ -121,7 +121,8 @@ export const verifySecret = async ({ accountId, password }: VerifySecretParams) 
 
 export const getCurrentUser = async () => {
   try {
-    const { account, databases } = await createSessionClient();
+    const { account } = await createSessionClient();
+    const { databases } = await createAdminClient();
     const currentAccount = await account.get();
 
     const usersByAccountId = await databases.listDocuments(

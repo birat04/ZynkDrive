@@ -27,6 +27,12 @@ declare interface GetFilesProps {
   searchText?: string;
   sort?: string;
   limit?: number;
+  includeDeletedOnly?: boolean;
+  includeStarredOnly?: boolean;
+  includePublicOnly?: boolean;
+  includeSharedWithMeOnly?: boolean;
+  includeRecentOnly?: boolean;
+  recentDays?: number;
 }
 declare interface RenameFileProps {
   fileId: string;
@@ -37,6 +43,7 @@ declare interface RenameFileProps {
 declare interface UpdateFileUsersProps {
   fileId: string;
   emails: string[];
+  sharedUsers?: Array<{ email: string; role: "viewer" | "editor" }>;
   path: string;
 }
 declare interface DeleteFileProps {

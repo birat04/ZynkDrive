@@ -57,12 +57,55 @@ export const FileDetails = ({ file }: { file: FileDoc }) => {
 
 interface ShareInputProps {
   file: FileDoc & { users?: string[] };
-  onEmailsChange: (emails: string[]) => void;
+  onSharedUsersChange: (sharedUsers: Array<{ email: string; role: "viewer" | "editor" }>) => void;
   onRemove: (email: string) => void;
 }
 
-export const ShareInput = ({ file, onEmailsChange, onRemove }: ShareInputProps) => {
-  const users = file.users ?? [];
+const parseSharedUsers = (users: string[]) => {
+  const roles = new Map<string, "viewer" | "editor">();
+
+  for (const value of users) {
+    const editorMatch = value.match(/^role:(.+):editor$/);
+    if (editorMatch?.[1]) {
+      roles.set(editorMatch[1].toLowerCase(), "editor");
+      continue;
+    }
+
+    if (!value.includes("@")) continue;
+
+    const email = value.toLowerCase();
+    if (!roles.has(email)) {
+      roles.set(email, "viewer");
+    }
+  }
+
+  return Array.from(roles.entries()).map(([email, role]) => ({ email, role }));
+};
+
+export const ShareInput = ({ file, onSharedUsersChange, onRemove }: ShareInputProps) => {
+  const sharedUsers = parseSharedUsers(file.users ?? []);
+  const rawEmails = sharedUsers.map((user) => user.email).join(", ");
+
+  const handleEmailsChange = (value: string) => {
+    const emails = value
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    const updated = emails.map((email) => {
+      const existing = sharedUsers.find((entry) => entry.email === email);
+      return { email, role: existing?.role ?? "viewer" };
+    });
+
+    onSharedUsersChange(updated);
+  };
+
+  const handleRoleChange = (email: string, role: "viewer" | "editor") => {
+    const updated = sharedUsers.map((entry) =>
+      entry.email === email ? { ...entry, role } : entry
+    );
+    onSharedUsersChange(updated);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -71,29 +114,35 @@ export const ShareInput = ({ file, onEmailsChange, onRemove }: ShareInputProps) 
       </label>
       <input
         type="text"
-        value={users.join(", ")}
+        value={rawEmails}
         placeholder="Enter emails separated by comma"
         onChange={(e) => {
-          const parsed = e.target.value
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-          onEmailsChange(parsed);
+          handleEmailsChange(e.target.value);
         }}
         className="shad-input w-full"
       />
-      {users.length > 0 && (
+      {sharedUsers.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm text-light-200">Shared with {users.length} user(s)</span>
-          {users.map((email) => (
+          <span className="text-sm text-light-200">Shared with {sharedUsers.length} user(s)</span>
+          {sharedUsers.map((entry) => (
             <div
-              key={email}
+              key={entry.email}
               className="flex items-center justify-between rounded-lg bg-light-300 px-3 py-2"
             >
-              <span className="text-sm text-light-100">{email}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-light-100">{entry.email}</span>
+                <select
+                  value={entry.role}
+                  onChange={(e) => handleRoleChange(entry.email, e.target.value as "viewer" | "editor")}
+                  className="h-8 rounded-full border border-light-200 bg-white px-3 text-xs"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                </select>
+              </div>
               <button
                 type="button"
-                onClick={() => onRemove(email)}
+                onClick={() => onRemove(entry.email)}
                 className="text-sm font-medium text-brand hover:text-brand-100"
               >
                 Remove
