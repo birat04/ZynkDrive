@@ -117,18 +117,13 @@ const assertOwner = (file: FileDoc, currentUserId: string, currentAccountId?: st
 };
 
 const buildAccessFilter = (currentUser: CurrentUserDoc) => {
-  const ownerId = currentUser.$id as string | undefined;
-  const email = currentUser.email;
+  const email = currentUser.email?.toLowerCase();
 
-  const filters: string[] = [];
-  if (ownerId) filters.push(Query.equal("owner", [ownerId]));
-  if (email) filters.push(Query.contains("users", [email]));
-
-  if (filters.length === 0) {
-    throw new Error("Current user is missing owner id and email");
+  if (!email) {
+    throw new Error("Current user is missing email");
   }
 
-  return filters.length === 1 ? filters[0] : Query.or(filters);
+  return Query.contains("users", [email]);
 };
 
 const isExpiredTrashDate = (deletedAt: string | null | undefined) => {
@@ -194,10 +189,9 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
         url: constructFileUrl(uploaded.$id),
         type,
         bucketFileId: uploaded.$id,
-        owner: (currentUser.$id as string) ?? ownerId,
         extension,
         size: file.size,
-        users: [],
+        users: [(currentUser.email as string)?.toLowerCase()],
         isDeleted: false,
         deletedAt: null,
         isStarred: false,
