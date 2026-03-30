@@ -164,10 +164,10 @@ export const getCurrentUser = async () => {
 
     // Avatar fallback: use Appwrite initials URL if collection doesn't store avatar
     const fullName = (user.fullName as string) ?? "User";
-    const avatar =
-      (user.avatar as string) ?? constructInitialsAvatarUrl(fullName);
+    const avatarUrl =
+      (user.avatar as string) || constructInitialsAvatarUrl(fullName);
 
-    return parseStringify({ ...user, avatar });
+    return parseStringify({ ...user, avatar: String(avatarUrl) });
   } catch {
     return null;
   }

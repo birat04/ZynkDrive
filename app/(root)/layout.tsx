@@ -16,7 +16,9 @@ export default async function RootLayout({
   if (!currentUser) return redirect("/sign-in");
 
   const fullName = (currentUser.fullName as string) ?? "User";
-  const avatar = (currentUser.avatar as string) ?? "";
+  const avatar = String((currentUser.avatar as any) ?? "").startsWith("http") 
+    ? (currentUser.avatar as string) 
+    : "";
   const email = (currentUser.email as string) ?? "";
   const userId = (currentUser.$id as string) ?? "";
   const accountId = (currentUser.accountId as string) ?? "";
