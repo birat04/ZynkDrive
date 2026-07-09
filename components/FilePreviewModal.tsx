@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 import { CodePreview } from "@/components/CodePreview";
+import CommentPanel from "@/components/CommentPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getFileIcon } from "@/lib/utils";
@@ -145,30 +146,36 @@ const FilePreviewModal = ({
           </p>
         </DialogHeader>
 
-        <div className="relative flex min-h-[360px] items-center justify-center bg-light-400 px-6 py-5">
-          {files.length > 1 ? (
-            <button
-              type="button"
-              onClick={showPrevious}
-              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
-              aria-label="Show previous file"
-            >
-              <ChevronLeft className="h-5 w-5 text-light-100" />
-            </button>
-          ) : null}
+        <div className="flex max-h-[calc(92vh-8rem)] flex-col lg:flex-row">
+          <div className="relative flex min-h-[360px] flex-1 items-center justify-center bg-light-400 px-6 py-5">
+            {files.length > 1 ? (
+              <button
+                type="button"
+                onClick={showPrevious}
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
+                aria-label="Show previous file"
+              >
+                <ChevronLeft className="h-5 w-5 text-light-100" />
+              </button>
+            ) : null}
 
-          <div className="flex w-full items-center justify-center">{renderPreview()}</div>
+            <div className="flex w-full items-center justify-center">{renderPreview()}</div>
 
-          {files.length > 1 ? (
-            <button
-              type="button"
-              onClick={showNext}
-              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
-              aria-label="Show next file"
-            >
-              <ChevronRight className="h-5 w-5 text-light-100" />
-            </button>
-          ) : null}
+            {files.length > 1 ? (
+              <button
+                type="button"
+                onClick={showNext}
+                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
+                aria-label="Show next file"
+              >
+                <ChevronRight className="h-5 w-5 text-light-100" />
+              </button>
+            ) : null}
+          </div>
+
+          <div className="flex w-full shrink-0 flex-col border-t border-light-200 lg:w-80 lg:border-l lg:border-t-0">
+            <CommentPanel fileId={currentFile.$id} />
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-light-200 px-6 py-4">

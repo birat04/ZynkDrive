@@ -5,6 +5,8 @@ import FileBrowser from "@/components/FileBrowser";
 import Sort from "@/components/Sort";
 import TrashActions from "@/components/TrashActions";
 import SharedLinksActions from "@/components/SharedLinksActions";
+import ShareManagement, { type ShareListItem } from "@/components/ShareManagement";
+import { getUserSharesWithDetails } from "@/lib/actions/share.actions";
 
 type PageProps = {
   params: Promise<{ type: string }>;
@@ -87,6 +89,7 @@ export default async function TypePage({ params, searchParams }: PageProps) {
         return typeof expiresAt === "number" && now >= expiresAt;
       }).length
     : 0;
+  const advancedShares = isSharedLinksPage ? await getUserSharesWithDetails() : [];
 
   return (
     <div className="page-container">
@@ -108,11 +111,14 @@ export default async function TypePage({ params, searchParams }: PageProps) {
       ) : null}
 
       {isSharedLinksPage ? (
-        <SharedLinksActions
-          tokens={sharedTokens}
-          totalCount={fileList.length}
-          expiredCount={expiredSharedLinksCount}
-        />
+        <>
+          <SharedLinksActions
+            tokens={sharedTokens}
+            totalCount={fileList.length}
+            expiredCount={expiredSharedLinksCount}
+          />
+          <ShareManagement shares={advancedShares as ShareListItem[]} />
+        </>
       ) : null}
 
       {fileList.length === 0 ? (

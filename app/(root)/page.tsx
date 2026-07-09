@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getFiles, getTotalSpaceUsed } from "@/lib/actions/file.actions";
 import { getUsageSummary, convertFileSize } from "@/lib/utils";
 import { Chart } from "@/components/Chart";
+import ActivityFeed from "@/components/ActivityFeed";
 import { FormattedDateTime } from "@/components/FormattedDateTime";
 import { Thumbnail } from "@/components/Thumbnail";
 
@@ -102,6 +103,8 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
+
+          <ActivityFeed />
         </div>
       </div>
     </div>

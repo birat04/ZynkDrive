@@ -239,7 +239,7 @@ export const PATHS = {
     PRIVACY: "/settings/privacy",
   },
   PUBLIC: {
-    SHARE: (token: string) => `/s/${token}`,
+    SHARE: (token: string) => `/shared/${token}`,
     LANDING: "/",
   },
 };

@@ -1,14 +1,16 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import PublicShareView from "@/components/PublicShareView";
 import { getPublicFileByToken } from "@/lib/actions/file.actions";
-import { constructDownloadUrl } from "@/lib/utils";
+import { getShareByToken } from "@/lib/actions/share.actions";
+import { constructDownloadUrl, constructFileUrl, convertFileSize } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ token: string }>;
 };
 
-const getShareTokenExpiryInfo = (token: string) => {
+const getLegacyShareTokenExpiryInfo = (token: string) => {
   const parts = token.split(".");
   const maybeTimestamp = Number(parts.at(-1));
 
@@ -34,7 +36,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SharedFilePage({ params }: PageProps) {
   const { token } = await params;
-  const tokenInfo = getShareTokenExpiryInfo(token);
+  const share = await getShareByToken(token);
+
+  if (share) {
+    return (
+      <PublicShareView
+        token={token}
+        type={share.type}
+        permission={share.permission}
+        requiresPassword={"requiresPassword" in share ? share.requiresPassword : false}
+        resource={"resource" in share ? (share.resource as Record<string, unknown>) : null}
+        expiresAt={"expiresAt" in share ? share.expiresAt : null}
+      />
+    );
+  }
+
+  const tokenInfo = getLegacyShareTokenExpiryInfo(token);
 
   if (tokenInfo.isExpired) {
     return (
@@ -77,8 +94,11 @@ export default async function SharedFilePage({ params }: PageProps) {
   }
 
   const fileType = (file.type as string) || "other";
-  const fileUrl = (file.url as string) || "";
+  const fileUrl = file.bucketFileId
+    ? constructFileUrl(file.bucketFileId as string)
+    : (file.url as string) || "";
   const bucketFileId = file.bucketFileId as string | undefined;
+  const fileSize = typeof file.size === "number" ? file.size : Number(file.size || 0);
   const expiresAtLabel = tokenInfo.expiresAt
     ? new Date(tokenInfo.expiresAt).toLocaleString()
     : "No expiry";
@@ -88,7 +108,10 @@ export default async function SharedFilePage({ params }: PageProps) {
       <header className="rounded-2xl bg-white p-5 shadow-drop-1">
         <p className="caption text-light-200">Shared File</p>
         <h1 className="mt-1 text-xl font-semibold text-light-100">{file.name as string}</h1>
-        <p className="caption mt-2 text-light-200">Link expires: {expiresAtLabel}</p>
+        <div className="caption mt-3 flex flex-wrap gap-x-4 gap-y-1 text-light-200">
+          <span>{convertFileSize(fileSize)}</span>
+          <span>Expires: {expiresAtLabel}</span>
+        </div>
       </header>
 
       <section className="rounded-2xl bg-white p-4 shadow-drop-1 sm:p-6">
@@ -115,12 +138,7 @@ export default async function SharedFilePage({ params }: PageProps) {
       </section>
 
       <div className="flex items-center gap-3">
-        <Link
-          href={fileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="primary-btn"
-        >
+        <Link href={fileUrl} target="_blank" rel="noopener noreferrer" className="primary-btn">
           Open in new tab
         </Link>
         {bucketFileId ? (

@@ -87,21 +87,3 @@ export const regenerateThumbnail = async (
   return thumbnails;
 };
 
-export const getThumbnailUrlForFile = (file: {
-  type?: string;
-  extension?: string;
-  bucketFileId?: string;
-  thumbnailId?: string | null;
-  thumbnailIdLg?: string | null;
-  url?: string;
-}) => {
-  if (file.thumbnailId) {
-    return `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${getThumbsBucket()}/files/${file.thumbnailId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
-  }
-
-  if (file.bucketFileId && isImageType(file.type || "", file.extension)) {
-    return constructPreviewUrl(file.bucketFileId, THUMBNAIL_SIZES.sm, THUMBNAIL_SIZES.sm);
-  }
-
-  return file.url || "";
-};

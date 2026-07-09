@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import Search from "@/components/Search";
 import FileUploader from "@/components/FileUploader";
+import NotificationsDropdown from "@/components/NotificationsDropdown";
 import { Button } from "@/components/ui/button";
 import { signOutUser } from "@/lib/actions/user.actions";
 
@@ -20,6 +21,8 @@ const Header = ({ ownerId, accountId, fullName, avatar }: HeaderProps) => {
       <Search />
       <div className="header-actions">
         <FileUploader ownerId={ownerId} accountId={accountId} />
+
+        <NotificationsDropdown />
 
         <Image
           src={avatar}

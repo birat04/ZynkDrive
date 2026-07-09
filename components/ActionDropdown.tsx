@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import ShareDialog from "@/components/ShareDialog";
 import { actionsDropdownItems } from "@/constants";
 import {
   createPublicShareLink,
@@ -42,7 +43,6 @@ import {
   toggleFileStarred,
   updateFileUsers,
 } from "@/lib/actions/file.actions";
-import { constructFileUrl } from "@/lib/utils";
 import { FileDetails, ShareInput } from "@/components/ActionsModalContent";
 
 type FileDoc = {
@@ -96,6 +96,7 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
   const [name, setName] = useState(file.name.replace(/\.[^/.]+$/, "") || "");
   const [isLoading, setIsLoading] = useState(false);
@@ -114,6 +115,11 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
           label: file.isStarred ? "Remove from Starred" : "Add to Starred",
           icon: "/assets/icons/info.svg",
           value: "toggle_star",
+        },
+        {
+          label: "Create Share Link",
+          icon: "/assets/icons/share.svg",
+          value: "create_share_link",
         },
         {
           label: "Copy Link (24h)",
@@ -331,6 +337,9 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
                       toast.error("Action failed. Please try again.");
                     }
                   })();
+                } else if (item.value === "create_share_link") {
+                  setShareDialogOpen(true);
+                  setDropdownOpen(false);
                 } else if (["copy_public_link_1d", "copy_public_link_7d", "copy_public_link_30d", "renew_public_link_7d"].includes(item.value)) {
                   void (async () => {
                     const expiresInDays =
@@ -429,6 +438,13 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ShareDialog
+        fileId={file.$id}
+        fileName={file.name}
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
     </>
   );
 };

@@ -254,7 +254,7 @@ export const advancedSearch = async (
 
     const searchLower = query.toLowerCase();
 
-    let results = allFiles.documents.filter((file: any) => {
+    const results: SearchResult[] = allFiles.documents.filter((file: any) => {
       // Name match
       if (!file.name.toLowerCase().includes(searchLower)) {
         return false;
@@ -262,40 +262,44 @@ export const advancedSearch = async (
 
       // File type filter
       if (fileType) {
-        const typeMap: Record<string, string[]> = {
-          image: [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp",
-            "image/svg+xml",
-          ],
-          video: [
-            "video/mp4",
-            "video/webm",
-            "video/quicktime",
-            "video/x-msvideo",
-          ],
-          audio: [
-            "audio/mpeg",
-            "audio/wav",
-            "audio/ogg",
-            "audio/aac",
-            "audio/flac",
-          ],
-          document: [
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/plain",
-          ],
-        };
+        if (file.type) {
+          if (file.type !== fileType) return false;
+        } else {
+          const typeMap: Record<string, string[]> = {
+            image: [
+              "image/jpeg",
+              "image/png",
+              "image/gif",
+              "image/webp",
+              "image/svg+xml",
+            ],
+            video: [
+              "video/mp4",
+              "video/webm",
+              "video/quicktime",
+              "video/x-msvideo",
+            ],
+            audio: [
+              "audio/mpeg",
+              "audio/wav",
+              "audio/ogg",
+              "audio/aac",
+              "audio/flac",
+            ],
+            document: [
+              "application/pdf",
+              "application/msword",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/plain",
+            ],
+          };
 
-        const allowedTypes = typeMap[fileType] || [];
-        if (!allowedTypes.includes(file.mimeType)) {
-          return false;
+          const allowedTypes = typeMap[fileType] || [];
+          if (!allowedTypes.includes(file.mimeType)) {
+            return false;
+          }
         }
       }
 
@@ -322,7 +326,7 @@ export const advancedSearch = async (
       }
 
       // Starred filter
-      if (starred && !file.starred) {
+      if (starred && !file.starred && !file.isStarred) {
         return false;
       }
 
@@ -330,7 +334,7 @@ export const advancedSearch = async (
     });
 
     // Sort by relevance
-    results = results
+    return results
       .map((file: any) => ({
         id: file.$id,
         name: file.name,
@@ -353,8 +357,6 @@ export const advancedSearch = async (
         );
       })
       .slice(offset, offset + limit);
-
-    return results;
   } catch (error) {
     console.error("Error in advanced search:", error);
     return [];
@@ -424,47 +426,3 @@ export const getSearchSuggestions = async (
   }
 };
 
-/**
- * Get recent searches (client-side stored, but here's a utility)
- */
-export const getRecentSearches = (): string[] => {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const stored = localStorage.getItem("recentSearches");
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Error getting recent searches:", error);
-    return [];
-  }
-};
-
-/**
- * Save a search query
- */
-export const saveSearch = (query: string) => {
-  if (typeof window === "undefined") return;
-
-  try {
-    const recent = getRecentSearches();
-    const filtered = recent.filter((q) => q !== query);
-    const updated = [query, ...filtered].slice(0, 10);
-
-    localStorage.setItem("recentSearches", JSON.stringify(updated));
-  } catch (error) {
-    console.error("Error saving search:", error);
-  }
-};
-
-/**
- * Clear all recent searches
- */
-export const clearRecentSearches = () => {
-  if (typeof window === "undefined") return;
-
-  try {
-    localStorage.removeItem("recentSearches");
-  } catch (error) {
-    console.error("Error clearing searches:", error);
-  }
-};

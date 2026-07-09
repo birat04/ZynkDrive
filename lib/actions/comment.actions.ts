@@ -145,8 +145,8 @@ export const getFileComments = async (
             ...comment,
             author: {
               id: author.$id,
-              name: author.displayName,
-              avatar: author.avatarUrl,
+              name: (author.displayName as string) || (author.fullName as string) || "User",
+              avatar: (author.avatarUrl as string) || (author.avatar as string),
             },
           };
         } catch (error) {
