@@ -6,6 +6,12 @@ import { redirect } from "next/navigation";
 
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { parseStringify, constructInitialsAvatarUrl } from "@/lib/utils";
+import {
+  markEmailVerified,
+  sendEmailVerification,
+  setPending2FASession,
+  userRequires2FA,
+} from "@/lib/auth/helpers";
 
 interface CreateAccountParams {
   fullName: string;
@@ -45,7 +51,7 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
     if (!existingUser) {
       const avatar = avatars.getInitials(fullName);
 
-      await databases.createDocument(
+      const newUser = await databases.createDocument(
         process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
         process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION!,
         ID.unique(),
@@ -53,10 +59,18 @@ export const createAccount = async ({ fullName, email }: CreateAccountParams) =>
           fullName,
           email,
           avatar: avatar.toString(),
-          accountId
-
+          accountId,
+          emailVerified: false,
         }
       );
+
+      try {
+        await sendEmailVerification(email);
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+      }
+
+      void newUser;
     } else {
       await account.createEmailToken(accountId, email);
     }
@@ -100,10 +114,26 @@ export const sendEmailOTP = async ({ accountId, email }: SendEmailOTPParams) => 
 };
 
 export const verifySecret = async ({ accountId, password }: VerifySecretParams) => {
-  const { account } = await createAdminClient();
+  const { account, databases } = await createAdminClient();
 
   try {
     const session = await account.createSession(accountId, password);
+
+    const users = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+      process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION!,
+      [Query.equal("accountId", [accountId])]
+    );
+
+    const user = users.documents?.[0];
+    if (user) {
+      await markEmailVerified(user.$id);
+    }
+
+    if (user && (await userRequires2FA(user.$id))) {
+      await setPending2FASession(accountId, session.secret);
+      return parseStringify({ requires2FA: true, accountId });
+    }
 
     (await cookies()).set("appwrite-session", session.secret, {
       path: "/",

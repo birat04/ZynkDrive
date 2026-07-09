@@ -19,6 +19,7 @@ import {
   bulkToggleFilesStarred,
 } from "@/lib/actions/file.actions";
 import { cn, constructFileUrl, convertFileSize } from "@/lib/utils";
+import { resolveThumbnailUrl } from "@/lib/utils/thumbnails";
 
 type FileDoc = {
   $id: string;
@@ -29,6 +30,7 @@ type FileDoc = {
   size?: number | string;
   $updatedAt?: string;
   bucketFileId?: string;
+  thumbnailId?: string | null;
   shareToken?: string | null;
   users?: string[];
   owner?: { fullName?: string } | string;
@@ -137,6 +139,13 @@ const FileBrowser = ({ files }: { files: FileDoc[] }) => {
         fileUrl: file.bucketFileId
           ? constructFileUrl(file.bucketFileId)
           : (file.url as string) || "#",
+        thumbnailUrl: resolveThumbnailUrl({
+          type: file.type,
+          extension: file.extension,
+          bucketFileId: file.bucketFileId,
+          thumbnailId: file.thumbnailId as string | null | undefined,
+          url: file.url,
+        }),
         fileSize:
           typeof file.size === "number" ? file.size : Number(file.size || 0),
         fileType: file.type || "other",
@@ -353,6 +362,7 @@ const FileBrowser = ({ files }: { files: FileDoc[] }) => {
                       type={file.fileType}
                       extension={file.extension ?? ""}
                       url={file.url ?? ""}
+                      thumbnailUrl={file.thumbnailUrl}
                       className="h-10 w-10 rounded-lg"
                       imageClassName="h-10 w-10 object-cover"
                     />

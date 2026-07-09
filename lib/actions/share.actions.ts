@@ -22,9 +22,40 @@ interface ShareDoc extends Models.Document {
 }
 
 interface FileDoc extends Models.Document {
-  ownerId: string;
+  ownerId?: string;
+  owner?: string;
+  accountId?: string;
   name: string;
+  type?: string;
+  extension?: string;
+  size?: number | string;
+  bucketFileId?: string;
+  url?: string;
+  $createdAt?: string;
+  $updatedAt?: string;
 }
+
+const assertFileOwner = (
+  file: FileDoc,
+  userId: string,
+  accountId?: string
+) => {
+  const isOwner =
+    file.owner === userId ||
+    file.ownerId === userId ||
+    (!!accountId && file.accountId === accountId);
+
+  if (!isOwner) {
+    throw new Error("Unauthorized to share this file");
+  }
+};
+
+const getShareUrl = (token: string) => `/shared/${token}`;
+
+const getAbsoluteShareUrl = (token: string) => {
+  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return `${base}${getShareUrl(token)}`;
+};
 
 /**
  * Generate a unique share token
@@ -86,9 +117,11 @@ export const createShare = async (params: {
         validated.fileId
       )) as FileDoc;
 
-      if (file.ownerId !== currentUser.$id) {
-        throw new Error("Unauthorized to share this file");
-      }
+      assertFileOwner(
+        file,
+        currentUser.$id,
+        currentUser.accountId as string | undefined
+      );
     }
 
     if (validated.folderId) {
@@ -135,8 +168,12 @@ export const createShare = async (params: {
       share: {
         shareId: share.$id,
         token,
-        url: `/s/${token}`,
+        url: getShareUrl(token),
+        absoluteUrl: getAbsoluteShareUrl(token),
         expiresAt: validated.expiresAt,
+        downloadLimit: validated.downloadLimit,
+        type: validated.type,
+        permission: validated.permission,
       },
     };
   } catch (error) {
@@ -331,9 +368,11 @@ export const getFileShares = async (fileId: string) => {
       fileId
     )) as FileDoc;
 
-    if (file.ownerId !== currentUser.$id) {
-      throw new Error("Unauthorized");
-    }
+    assertFileOwner(
+      file,
+      currentUser.$id,
+      currentUser.accountId as string | undefined
+    );
 
     const shares = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
@@ -478,13 +517,90 @@ export const incrementShareDownloadCount = async (shareId: string) => {
   }
 };
 
+export const getShareStats = async (shareId: string) => {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) throw new Error("Unauthorized");
+
+    const { databases } = await createAdminClient();
+    const share = (await databases.getDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+      process.env.NEXT_PUBLIC_APPWRITE_SHARES_COLLECTION!,
+      shareId
+    )) as ShareDoc;
+
+    if (share.createdBy !== currentUser.$id) {
+      throw new Error("Unauthorized");
+    }
+
+    return {
+      shareId: share.$id,
+      token: share.token,
+      downloadCount: share.downloadCount,
+      downloadLimit: share.downloadLimit,
+      expiresAt: share.expiresAt,
+      type: share.type,
+      permission: share.permission,
+      createdAt: share.createdAt,
+      url: share.token ? getShareUrl(share.token) : null,
+      absoluteUrl: share.token ? getAbsoluteShareUrl(share.token) : null,
+    };
+  } catch (error) {
+    console.error("Error getting share stats:", error);
+    throw error;
+  }
+};
+
+export const getUserSharesWithDetails = async () => {
+  const shares = (await getUserShares()) as ShareDoc[];
+  const { databases } = await createAdminClient();
+
+  const enriched = await Promise.all(
+    shares.map(async (share) => {
+      let resourceName = "Unknown";
+      let resourceType: "file" | "folder" = "file";
+
+      try {
+        if (share.fileId) {
+          const file = (await databases.getDocument(
+            process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+            process.env.NEXT_PUBLIC_APPWRITE_FILES_COLLECTION!,
+            share.fileId
+          )) as FileDoc;
+          resourceName = file.name;
+          resourceType = "file";
+        } else if (share.folderId) {
+          const folder = (await databases.getDocument(
+            process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
+            process.env.NEXT_PUBLIC_APPWRITE_FOLDERS_COLLECTION!,
+            share.folderId
+          )) as { name?: string };
+          resourceName = folder.name || "Folder";
+          resourceType = "folder";
+        }
+      } catch {
+        resourceName = "Deleted resource";
+      }
+
+      return {
+        ...share,
+        resourceName,
+        resourceType,
+        shareUrl: share.token ? getShareUrl(share.token) : null,
+        absoluteUrl: share.token ? getAbsoluteShareUrl(share.token) : null,
+      };
+    })
+  );
+
+  return enriched;
+};
+
 /**
  * Create a QR code for a share (just generate the data, client-side rendering)
  */
 export const generateShareQRData = async (token: string): Promise<string> => {
   try {
-    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/s/${token}`;
-    return shareUrl;
+    return getAbsoluteShareUrl(token);
   } catch (error) {
     console.error("Error generating QR data:", error);
     throw error;

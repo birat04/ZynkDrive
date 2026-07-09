@@ -6,8 +6,10 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 
 import { createAdminClient } from "@/lib/appwrite";
-import { getFileType, parseStringify, constructFileUrl } from "@/lib/utils";
+import { requireEmailVerified } from "@/lib/actions/auth.actions";
+import { generateFileThumbnails } from "@/lib/actions/thumbnail.actions";
 import { getCurrentUser } from "@/lib/actions/user.actions";
+import { getFileType, parseStringify, constructFileUrl } from "@/lib/utils";
 
 const TRASH_RETENTION_DAYS = 30;
 const TRASH_RETENTION_MS = TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000;
@@ -161,8 +163,8 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
 
   try {
     void accountId;
-    const currentUser = await getCurrentUser();
-    if (!currentUser) throw new Error("Unauthenticated");
+    void ownerId;
+    await requireEmailVerified();
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const inputFile = InputFile.fromBuffer(buffer, file.name);
@@ -174,6 +176,7 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
     );
 
     const { type, extension } = getFileType(file.name);
+    const thumbnails = await generateFileThumbnails(uploaded.$id, type, extension);
 
     const fileDocument = await databases.createDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE!,
@@ -191,6 +194,8 @@ export const uploadFile = async ({ file, ownerId, accountId, path }: UploadFileP
         isStarred: false,
         isPublic: false,
         shareToken: null,
+        thumbnailId: thumbnails.thumbnailId,
+        thumbnailIdLg: thumbnails.thumbnailIdLg,
       }
     );
 

@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
+import { CodePreview } from "@/components/CodePreview";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { constructDownloadUrl, getFileIcon } from "@/lib/utils";
+import { getFileIcon } from "@/lib/utils";
+import { isCodePreviewable } from "@/lib/utils/thumbnails";
 
 type PreviewFile = {
   $id: string;
@@ -22,6 +24,9 @@ type FilePreviewModalProps = {
   onSelectedIndexChange: (index: number | null) => void;
 };
 
+const imageFiles = (files: PreviewFile[]) =>
+  files.filter((file) => file.fileType === "image");
+
 const FilePreviewModal = ({
   files,
   selectedIndex,
@@ -32,6 +37,9 @@ const FilePreviewModal = ({
   const currentFile = files[currentIndex];
 
   if (!currentFile) return null;
+
+  const gallery = imageFiles(files);
+  const galleryIndex = gallery.findIndex((file) => file.$id === currentFile.$id);
 
   const showPrevious = () => {
     const prev = (currentIndex - 1 + files.length) % files.length;
@@ -46,13 +54,37 @@ const FilePreviewModal = ({
   const renderPreview = () => {
     if (currentFile.fileType === "image") {
       return (
-        <Image
-          src={currentFile.fileUrl}
-          alt={currentFile.name}
-          width={1200}
-          height={700}
-          className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain"
-        />
+        <div className="flex w-full flex-col items-center gap-4">
+          <Image
+            src={currentFile.fileUrl}
+            alt={currentFile.name}
+            width={1200}
+            height={700}
+            className="max-h-[60vh] w-auto max-w-full rounded-xl object-contain"
+          />
+          {gallery.length > 1 ? (
+            <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
+              {gallery.map((file, index) => (
+                <button
+                  key={file.$id}
+                  type="button"
+                  onClick={() => onSelectedIndexChange(files.findIndex((item) => item.$id === file.$id))}
+                  className={`shrink-0 overflow-hidden rounded-lg border-2 ${
+                    index === galleryIndex ? "border-brand" : "border-transparent"
+                  }`}
+                >
+                  <Image
+                    src={file.fileUrl}
+                    alt={file.name}
+                    width={72}
+                    height={72}
+                    className="h-16 w-16 object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       );
     }
 
@@ -72,6 +104,10 @@ const FilePreviewModal = ({
           <audio src={currentFile.fileUrl} controls className="w-full" />
         </div>
       );
+    }
+
+    if (isCodePreviewable(currentFile.extension)) {
+      return <CodePreview fileId={currentFile.$id} extension={currentFile.extension} />;
     }
 
     if (currentFile.fileType === "document") {
@@ -110,25 +146,29 @@ const FilePreviewModal = ({
         </DialogHeader>
 
         <div className="relative flex min-h-[360px] items-center justify-center bg-light-400 px-6 py-5">
-          <button
-            type="button"
-            onClick={showPrevious}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
-            aria-label="Show previous file"
-          >
-            <ChevronLeft className="h-5 w-5 text-light-100" />
-          </button>
+          {files.length > 1 ? (
+            <button
+              type="button"
+              onClick={showPrevious}
+              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
+              aria-label="Show previous file"
+            >
+              <ChevronLeft className="h-5 w-5 text-light-100" />
+            </button>
+          ) : null}
 
           <div className="flex w-full items-center justify-center">{renderPreview()}</div>
 
-          <button
-            type="button"
-            onClick={showNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
-            aria-label="Show next file"
-          >
-            <ChevronRight className="h-5 w-5 text-light-100" />
-          </button>
+          {files.length > 1 ? (
+            <button
+              type="button"
+              onClick={showNext}
+              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-2 shadow-drop-1 transition hover:bg-light-300"
+              aria-label="Show next file"
+            >
+              <ChevronRight className="h-5 w-5 text-light-100" />
+            </button>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-light-200 px-6 py-4">
@@ -138,15 +178,9 @@ const FilePreviewModal = ({
               Open in new tab
             </a>
           </Button>
-          {currentFile.bucketFileId ? (
+          {currentFile.$id ? (
             <Button asChild>
-              <a
-                href={constructDownloadUrl(currentFile.bucketFileId)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download
-              </a>
+              <a href={`/api/files/${currentFile.$id}/download`}>Download</a>
             </Button>
           ) : null}
         </div>

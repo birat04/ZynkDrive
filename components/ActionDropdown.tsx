@@ -42,7 +42,7 @@ import {
   toggleFileStarred,
   updateFileUsers,
 } from "@/lib/actions/file.actions";
-import { constructDownloadUrl } from "@/lib/utils";
+import { constructFileUrl } from "@/lib/utils";
 import { FileDetails, ShareInput } from "@/components/ActionsModalContent";
 
 type FileDoc = {
@@ -383,8 +383,8 @@ const ActionDropdown = ({ file }: { file: FileDoc }) => {
                     toast.success("Public link revoked");
                     closeAll();
                   })();
-                } else if (item.value === "download" && file.bucketFileId) {
-                  window.open(constructDownloadUrl(file.bucketFileId), "_blank");
+                } else if (item.value === "download" && file.$id) {
+                  window.open(`/api/files/${file.$id}/download`, "_blank");
                   setDropdownOpen(false);
                 }
               }}

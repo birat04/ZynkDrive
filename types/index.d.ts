@@ -77,6 +77,7 @@ declare interface ThumbnailProps {
   url: string;
   className?: string;
   imageClassName?: string;
+  thumbnailUrl?: string;
 }
 
 declare interface ShareInputProps {

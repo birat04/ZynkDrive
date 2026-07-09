@@ -3,6 +3,7 @@ import { Thumbnail } from "@/components/Thumbnail";
 import { FormattedDateTime } from "@/components/FormattedDateTime";
 import ActionDropdown from "@/components/ActionDropdown";
 import { constructFileUrl, convertFileSize } from "@/lib/utils";
+import { resolveThumbnailUrl } from "@/lib/utils/thumbnails";
 
 type FileDoc = {
   $id: string;
@@ -13,6 +14,7 @@ type FileDoc = {
   size?: number | string;
   $updatedAt?: string;
   bucketFileId?: string;
+  thumbnailId?: string | null;
   users?: string[];
   owner?: { fullName?: string } | string;
   accountId?: string;
@@ -28,6 +30,13 @@ const Card = ({ file, onOpenPreview }: CardProps) => {
   const size = typeof file.size === "number" ? file.size : Number(file.size || 0);
   const type = file.type || "other";
   const fileUrl = file.bucketFileId ? constructFileUrl(file.bucketFileId) : (file.url as string) || "#";
+  const thumbnailUrl = resolveThumbnailUrl({
+    type,
+    extension: file.extension,
+    bucketFileId: file.bucketFileId,
+    thumbnailId: file.thumbnailId,
+    url: file.url,
+  });
 
   const content = (
     <>
@@ -36,6 +45,7 @@ const Card = ({ file, onOpenPreview }: CardProps) => {
           type={type}
           extension={file.extension ?? ""}
           url={file.url ?? ""}
+          thumbnailUrl={thumbnailUrl}
           className="h-24 w-full"
           imageClassName="h-24 w-full object-cover"
         />

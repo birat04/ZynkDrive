@@ -373,7 +373,7 @@ export const notifySecurityEvent = async (
   const messages: Record<string, string> = {
     new_device: "Your account was accessed from a new device",
     password_changed: "Your password was changed",
-    2fa_disabled: "Two-factor authentication was disabled",
+    "2fa_disabled": "Two-factor authentication was disabled",
   };
 
   return createNotification(userId, "security", {

@@ -192,6 +192,52 @@ export const CreateCommentSchema = z.object({
   mentions: z.array(z.string()).optional(),
 });
 
+export const VerifyEmailSchema = z.object({
+  email: z.string().email(),
+  token: z.string().min(32),
+});
+
+export const ResendVerificationSchema = z.object({
+  email: z.string().email(),
+});
+
+export const VerifyTOTPSchema = z.object({
+  code: z.string().length(6),
+});
+
+export const EnableTOTPSchema = z.object({
+  code: z.string().length(6),
+});
+
+export const ValidateRecoveryCodeSchema = z.object({
+  code: z.string().min(8).max(16),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(8),
+  newPassword: z.string().min(8),
+});
+
+export const RequestPasswordResetSchema = z.object({
+  email: z.string().email(),
+});
+
+export const ResetPasswordSchema = z.object({
+  email: z.string().email(),
+  token: z.string().min(32),
+  newPassword: z.string().min(8),
+});
+
+export const RevokeSessionSchema = z.object({
+  sessionId: z.string(),
+});
+
+export const UploadChunkSchema = z.object({
+  uploadId: z.string(),
+  chunkIndex: z.number().int().nonnegative(),
+  totalChunks: z.number().int().positive(),
+});
+
 // ============= STORAGE PLANS =============
 export const StoragePlanSchema = z.object({
   name: z.enum(["free", "pro", "team"]),

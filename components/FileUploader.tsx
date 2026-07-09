@@ -7,9 +7,15 @@ import { toast } from "sonner";
 import { usePathname } from "next/navigation";
 
 import { Thumbnail } from "@/components/Thumbnail";
-import { uploadFile } from "@/lib/actions/file.actions";
 import { convertFileSize, getFileType } from "@/lib/utils";
-import { MAX_FILE_SIZE } from "@/constants";
+import { CHUNK_SIZE, MAX_FILE_SIZE } from "@/lib/constants";
+import {
+  clearUploadResumeState,
+  loadUploadResumeStates,
+  uploadFilesInParallel,
+  uploadWithProgress,
+  type UploadResumeState,
+} from "@/lib/utils/upload-client";
 import { cn } from "@/lib/utils";
 
 type UploadStatus = "queued" | "uploading" | "success" | "error";
@@ -20,6 +26,7 @@ type UploadQueueItem = {
   previewUrl: string;
   status: UploadStatus;
   progress: number;
+  resumeState?: UploadResumeState;
 };
 
 const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
@@ -30,33 +37,33 @@ const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
 
   const uploadOne = useCallback(
     async (item: UploadQueueItem) => {
-      let progressTimer: ReturnType<typeof setInterval> | null = null;
-
       setFiles((prev) =>
         prev.map((fileItem) =>
           fileItem.id === item.id
-            ? { ...fileItem, status: "uploading", progress: 20 }
+            ? { ...fileItem, status: "uploading", progress: Math.max(fileItem.progress, 5) }
             : fileItem
         )
       );
 
-      progressTimer = setInterval(() => {
-        setFiles((prev) =>
-          prev.map((fileItem) => {
-            if (fileItem.id !== item.id || fileItem.status !== "uploading") {
-              return fileItem;
-            }
-
-            return {
-              ...fileItem,
-              progress: Math.min(fileItem.progress + 10, 90),
-            };
-          })
-        );
-      }, 250);
-
       try {
-        await uploadFile({ file: item.file, ownerId, accountId, path });
+        await uploadWithProgress({
+          file: item.file,
+          ownerId,
+          accountId,
+          path,
+          resumeState: item.resumeState,
+          onProgress: (progress) => {
+            setFiles((prev) =>
+              prev.map((fileItem) =>
+                fileItem.id === item.id ? { ...fileItem, progress } : fileItem
+              )
+            );
+          },
+        });
+
+        if (item.resumeState?.uploadId) {
+          clearUploadResumeState(item.resumeState.uploadId);
+        }
 
         setFiles((prev) =>
           prev.map((fileItem) =>
@@ -66,29 +73,28 @@ const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
           )
         );
         toast.success(`${item.file.name} uploaded successfully`);
-      } catch {
+      } catch (error) {
         setFiles((prev) =>
           prev.map((fileItem) =>
             fileItem.id === item.id
-              ? { ...fileItem, status: "error", progress: 0 }
+              ? { ...fileItem, status: "error", progress: fileItem.progress }
               : fileItem
           )
         );
-        toast.error(`Failed to upload ${item.file.name}`);
-      } finally {
-        if (progressTimer) clearInterval(progressTimer);
+        const message = error instanceof Error ? error.message : "Upload failed";
+        toast.error(`Failed to upload ${item.file.name}: ${message}`);
       }
     },
     [ownerId, accountId, path]
   );
 
-  const onDrop = useCallback(
+  const queueFiles = useCallback(
     async (acceptedFiles: File[]) => {
       const queuedFiles: UploadQueueItem[] = [];
 
       for (const file of acceptedFiles) {
         if (file.size > MAX_FILE_SIZE) {
-          toast.error(`${file.name} is too large. Max file size is 50MB.`);
+          toast.error(`${file.name} is too large. Max file size is ${convertFileSize(MAX_FILE_SIZE)}.`);
           continue;
         }
 
@@ -105,18 +111,26 @@ const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
 
       setFiles((prev) => [...prev, ...queuedFiles]);
 
-      for (const item of queuedFiles) {
+      await uploadFilesInParallel(queuedFiles, async (item) => {
         await uploadOne(item);
-      }
+      });
     },
     [uploadOne]
   );
 
-  const { getRootProps, getInputProps } = useDropzone({
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      await queueFiles(acceptedFiles);
+    },
+    [queueFiles]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     noClick: false,
     noKeyboard: false,
     maxSize: MAX_FILE_SIZE,
+    multiple: true,
   });
 
   const handleRemoveFile = (e: React.MouseEvent, fileId: string) => {
@@ -139,7 +153,6 @@ const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
   }, [files]);
 
   useEffect(() => {
-    // Revoke object URLs when files are removed after successful upload.
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     for (const item of files) {
@@ -170,26 +183,43 @@ const FileUploader = ({ ownerId, accountId, className }: FileUploaderProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    const pending = loadUploadResumeStates();
+    if (!pending.length) return;
+
+    toast.message("Incomplete uploads detected", {
+      description: `${pending.length} upload(s) can be resumed by selecting the same file again.`,
+    });
+  }, []);
+
   return (
     <>
       <div
         {...getRootProps()}
-        className={cn("uploader-dropzone", className)}
+        className={cn(
+          "uploader-dropzone",
+          isDragActive && "border-brand bg-brand/5",
+          className
+        )}
       >
         <input {...getInputProps()} />
         <Image src="/assets/icons/upload.svg" alt="" width={20} height={20} />
-        <span>Upload</span>
+        <span>{isDragActive ? "Drop files here" : "Upload"}</span>
       </div>
 
       {files.length > 0 && (
         <div className="uploader-preview-list">
-          <p className="caption font-medium text-light-100">Uploading</p>
+          <p className="caption font-medium text-light-100">
+            Uploading {files.filter((item) => item.status === "uploading").length > 1 ? `${files.length} files` : ""}
+          </p>
           {files.map((item) => {
             const { type, extension } = getFileType(item.file.name);
 
             const statusLabel =
               item.status === "uploading"
-                ? "Uploading"
+                ? item.file.size > CHUNK_SIZE
+                  ? "Uploading (chunked)"
+                  : "Uploading"
                 : item.status === "queued"
                 ? "Queued"
                 : item.status === "error"
